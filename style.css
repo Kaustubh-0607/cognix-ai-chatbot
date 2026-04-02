@@ -163,8 +163,9 @@ div[class*="stAppBottomBlock"] {
 }
 
 /* Style the text area inside the pill */
-[data-testid="stChatInput"] textarea {
+[data-testid="stChatInput"] > div textarea {
     color: #1a1a3e !important; /* Dark text for contrast */
+    caret-color: #1a1a3e !important; /* Make the typing cursor visible */
     font-weight: 500;
 }
 
