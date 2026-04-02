@@ -109,14 +109,23 @@ h1 {
     color: white !important;
 }
 
-/* Remove ANY black/grey block behind chat input recursively */
+/* Remove ANY black/grey/white block behind chat input recursively */
 [data-testid="stBottomBlockContainer"], 
 [data-testid="stBottom"],
+[data-testid="stHeader"],
 .stAppBottomBlock,
-div[class*="stBottom"] {
+div[class*="stBottom"],
+div[class*="stAppBottomBlock"] {
     background: transparent !important;
     background-color: transparent !important;
+    background-image: none !important;
     border: none !important;
+    box-shadow: none !important;
+}
+
+/* Ensure main body area doesn't have an artificial white background at the bottom */
+.stApp > header {
+    background: transparent !important;
 }
 
 /* Light Text area input - Outer Container */
