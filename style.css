@@ -112,8 +112,10 @@ h1 {
 /* Remove ANY black/grey/white block behind chat input recursively */
 [data-testid="stBottomBlockContainer"], 
 [data-testid="stBottom"],
+[data-testid="stBottom"] > div,
 [data-testid="stHeader"],
 .stAppBottomBlock,
+.stAppBottomBlock > div,
 div[class*="stBottom"],
 div[class*="stAppBottomBlock"] {
     background: transparent !important;
