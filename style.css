@@ -205,3 +205,28 @@ footer {visibility: hidden;}
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.4);
 }
+
+/* =========================================================
+   ANIMATIONS (Micro-Interactions)
+   ========================================================= */
+
+/* 1. Chat Bubble Appearance */
+@keyframes fadeSlideUp {
+    0% { opacity: 0; transform: translateY(15px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+[data-testid="stChatMessage"] {
+    animation: fadeSlideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* 2. Chat Input Pill Hover/Focus Glow */
+[data-testid="stChatInput"] > div {
+    transition: all 0.3s ease !important;
+}
+
+[data-testid="stChatInput"] > div:hover, 
+[data-testid="stChatInput"] > div:focus-within {
+    box-shadow: 0 12px 40px rgba(108, 60, 224, 0.2) !important; /* Subtle purple glow */
+    transform: translateY(-2px);
+}

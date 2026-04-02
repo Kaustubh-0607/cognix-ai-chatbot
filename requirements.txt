@@ -3,3 +3,5 @@ thefuzz
 python-Levenshtein
 google-generativeai
 python-dotenv
+streamlit-lottie
+requests
