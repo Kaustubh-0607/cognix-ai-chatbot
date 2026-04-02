@@ -147,11 +147,13 @@ div[class*="stAppBottomBlock"] {
     border-radius: 30px !important;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
     padding: 5px !important;
+    z-index: 9999 !important; /* Ensure it stays on top and clickable */
 }
 
-/* Make deeper inner wrappers transparent so they don't block the white pill */
-[data-testid="stChatInput"] > div > div {
-    background: transparent !important;
+/* Make inner layout wrappers transparent without breaking the text area and buttons */
+[data-testid="stChatInput"] > div > div, 
+[data-testid="stChatInput"] > div > div > div {
+    background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
@@ -159,7 +161,6 @@ div[class*="stAppBottomBlock"] {
 /* Style the text area inside the pill */
 [data-testid="stChatInput"] textarea {
     color: #1a1a3e !important; /* Dark text for contrast */
-    background-color: transparent !important;
     font-weight: 500;
 }
 
@@ -204,29 +205,4 @@ footer {visibility: hidden;}
 }
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.4);
-}
-
-/* =========================================================
-   ANIMATIONS (Micro-Interactions)
-   ========================================================= */
-
-/* 1. Chat Bubble Appearance */
-@keyframes fadeSlideUp {
-    0% { opacity: 0; transform: translateY(15px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-[data-testid="stChatMessage"] {
-    animation: fadeSlideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-/* 2. Chat Input Pill Hover/Focus Glow */
-[data-testid="stChatInput"] > div {
-    transition: all 0.3s ease !important;
-}
-
-[data-testid="stChatInput"] > div:hover, 
-[data-testid="stChatInput"] > div:focus-within {
-    box-shadow: 0 12px 40px rgba(108, 60, 224, 0.2) !important; /* Subtle purple glow */
-    transform: translateY(-2px);
 }
