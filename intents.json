@@ -1,0 +1,200 @@
+{
+  "settings": {
+    "fuzzy_threshold": 60,
+    "min_token_length": 3,
+    "bot_name": "Cognix",
+    "page_title": "AI Internship Assistant",
+    "welcome_message": "**Cognix:** Welcome to AI Internship Assistant! 👋\nHow can I help you today?\n\nYou can ask about:\n- Internship Opportunities\n- Project Guidelines\n- Application Process\n- Certificates\n- Support / Contact Us",
+    "fallback_response": "**Cognix:** Sorry, I didn't understand that. 🤔\n\nYou can ask about:\n- Internship Opportunities\n- AI/ML Details\n- How to Apply\n- Certification\n- Support\n\nType 'main menu' to return to the main menu.",
+    "subtitle": "Hi! I'm your AI Internship Assistant. Ask me anything about internships, projects, or certification!"
+  },
+
+  "ai_settings": {
+    "enable_ai": true,
+    "model_name": "gemini-2.5-flash",
+    "system_prompt": "You are Cognix, a friendly, witty, and helpful AI Internship Assistant chatbot. Your primary job is to help students find the right internship program, but you also have a warm personality.\n\nIMPORTANT RULES:\n1. Be conversational and friendly! You CAN tell jokes, have fun conversations, and show personality. If someone asks for a joke, tell one (preferably tech/coding related). If someone says hi, be warm and welcoming.\n2. Your PRIMARY expertise is internships, career guidance, projects, and professional development. After fun interactions, gently guide the conversation back to how you can help with internships.\n3. When answering internship questions, use ONLY the internship information provided below. NEVER invent internship names, project names, links, or contact details.\n4. If you don't know something specific, say so honestly and suggest the user type 'main menu' to see available topics.\n5. Keep responses concise, friendly, and formatted with markdown.\n6. Always sign your messages as **Cognix:**\n7. When recommending an internship, include the Apply link if available.\n8. You can compare internships, suggest which one fits a student's interests, and answer follow-up questions.\n\nHere is the complete internship database you must use:\n\n---\nINTERNSHIPS OFFERED:\n\n1. Web Development - Topics: HTML5, CSS3, Bootstrap, JavaScript. Projects: Responsive landing page, Stopwatch app, Tic-Tac-Toe, Portfolio website, Weather app. Duration: 1-2 months, Online. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Web+Development\n\n2. Software Development - Topics: Life Cycle, CLI Apps, GUI Apps, Web Scraping. Projects: Temperature Converter, Guessing Game, Contact Management, Sudoku Game. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Software+Development\n\n3. Full Stack Web Development - Topics: Authentication, Authorization, Database Management, REST APIs. Projects: Login Page, Employee Management, Ecommerce Site, Chat App, Social Media Dashboard. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Full+Stack+Web+Development\n\n4. Machine Learning - Topics: Supervised/Unsupervised Learning, Deep Learning. Projects: House price prediction, K-means clustering, SVM. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Machine+Learning\n\n5. Data Science - Topics: EDA, Data pre-processing, Visualization, BI Tools. Projects: Data Analysis Report, Recommendation System, Image Classifier, Sentiment Analyzer. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Data+Science\n\n6. Generative AI - Topics: Text Generation, Image Generation, Markov Chains, GANs, Neural Style Transfer. Projects: GPT-2 text generation, Image generation with GANs. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Generative+AI\n\n7. Software Testing - Topics: Manual Testing, Automation, API Testing, Performance Testing. Projects: Test cases, Compatibility testing, Cross-browser testing. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Software+Testing\n\n8. Cyber Security - Topics: Fundamentals, Network Security, Cryptography. Projects: Caesar Cipher, Password checker, Keylogger, Packet analyzer. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Cyber+Security\n\n9. Android Development - Topics: Android, Kotlin, Flutter, React Native. Projects: Calculator, To-Do List, Weather App, BMI Calculator, Note-Taking App. Apply: https://prodigyinfotech.dev/apply?entry.873259196=Android+Development\n\n10. React JS - Topics: React Basics, Hooks, Redux. Projects: Portfolio, E-commerce Store, Blog, Task Manager, Weather Dashboard. Apply: https://forms.gle/gXB7dbmRpSmVvpqM7\n\n11. UI/UX Design - Topics: UI/UX Basics, Figma, Adobe XD. Projects: Mobile App Interface, Website Redesign, Landing Page, Dashboard, Icon Set. Apply: https://forms.gle/1N5VqxYueBMGpY3KA\n\n12. Python Programming - Topics: Python Basics, Django, Flask, Data Analysis. Projects: Web Scraper, Blog App, Data Visualization, REST API, Chatbot. Apply: https://forms.gle/1N5VqxYueBMGpY3KA\n\n13. Java Programming - Topics: Java Basics, Spring Framework, Hibernate. Projects: Banking System, E-commerce App, Library Management, Online Quiz, Chat App. Apply: https://forms.gle/1N5VqxYueBMGpY3KA\n\n14. JavaScript Programming - Topics: JavaScript Basics, React, Node.js. Projects: To-Do List, Weather App, BMI Calculator, Note-Taking App. Apply: https://forms.gle/gXB7dbmRpSmVvpqM7\n\n15. C++ Programming - Topics: C++ Basics, Data Structures, Algorithms. Projects: Calculator, To-Do List, Weather App, BMI Calculator. Apply: https://forms.gle/1N5VqxYueBMGpY3KA\n\nGENERAL INFO:\n- All internships are 1-2 months, 100% Online\n- Benefits: Verified Certificate + Offer Letter + Flexible Work Hours\n- 5 projects per internship with flexible deadlines\n- Submit projects via GitHub or file upload\n- Top performers get Letter of Recommendation (LOR) and LinkedIn shoutouts\n- Contact: contact@prodigyinfotech.dev | Website: prodigyinfotech.dev\n---"
+  },
+
+  "intents": {
+    "main_menu": {
+      "keywords": [
+        "main menu", "menu", "home", "start", "go back",
+        "back to menu", "restart", "beginning", "reset"
+      ],
+      "response": "**Cognix:** You are back at the main menu. How can I help you today?\n\nYou can ask about:\n- Internship Opportunities\n- Project Guidelines\n- Application Process\n- Certificates\n- Support / Contact Us",
+      "reset_chat": true
+    },
+
+    "internship_overview": {
+      "keywords": [
+        "internship", "internships", "opportunity", "opportunities",
+        "available internships", "internship list", "what internships",
+        "intern", "available programs", "programs offered"
+      ],
+      "response": "**Cognix:** **We offer internships in:**\n- Web Development\n- Software Development Internship\n- Full Stack Web Development Internship\n- Machine Learning Internship\n- Data Science Internship\n- Generative AI Internship\n- Software Testing Internship\n- Cyber Security Internship\n- Android Development Internship\n- React JS Internship\n- UI/UX Design Internship\n- Java Programming\n- JavaScript Programming\n- Python Programming\n- C++ Programming\n\nPlease type the name of the internship you're interested in to know more.\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "web_dev": {
+      "keywords": [
+        "web development", "web dev", "website", "frontend",
+        "front end", "html", "css", "web", "web internship"
+      ],
+      "response": "**Cognix:** **Here are the details for the Web Development Internship:**\n\n**Topics Covered:** HTML5, CSS3, Bootstrap, JavaScript, Web Applications, Responsive Website\n\nProjects: Responsive landing page, Stopwatch web application, Tic-Tac-Toe game, Personal Portfolio website, Weather application\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Web+Development)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "software_dev": {
+      "keywords": [
+        "software development", "software dev", "software internship",
+        "software engineer", "software program", "software"
+      ],
+      "response": "**Cognix:** **Here are the details for the Software Development Internship:**\n\n**Topics Covered:** Life Cycle, CLI Apps, GUI Apps, Web Scraping\n\nProjects: Build a Temperature Converter, Create a Guessing Game, Implement a simple Contact Management System, Implement a Sudoku Game, Web Scraping\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Software+Development)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "full_stack": {
+      "keywords": [
+        "full stack web development", "full stack", "fullstack",
+        "backend", "back end", "mern", "mean", "stack", "full stack dev"
+      ],
+      "response": "**Cognix:** **Here are the details for the Full Stack Web Development Internship:**\n\n**Topics Covered:** Authentication, Authorization, Database Management, REST APIs\n\nProjects: Secure Login and Registration Page, Employee Management System, Local Ecommerce Site, Real-Time Chat Application, Social Media Dashboard\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Full+Stack+Web+Development)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "machine_learning": {
+      "keywords": [
+        "machine learning", "ml", "supervised learning", "unsupervised learning",
+        "ml internship"
+      ],
+      "response": "**Cognix:** **Here are the details for the Machine Learning Internship:**\n\n**Topics Covered:** Data analysis, Supervised Learning, Unsupervised Learning, Deep Learning\n\nProjects: Implement linear regression for house price prediction, Apply K-means clustering to customer purchase history, SVM\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Machine+Learning)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "data_science": {
+      "keywords": [
+        "data science", "data analysis", "data internship", "eda", "visualization", "bi tools"
+      ],
+      "response": "**Cognix:** **Here are the details for the Data Science Internship:**\n\n**Topics Covered:** EDA, Data pre-processing, Data Visualization, BI Tools\n\nProjects: Data Analysis Report, Recommendation System, Image Classifier, Sentiment Analyzer\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Data+Science)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+    
+    "generative_ai": {
+      "keywords": [
+        "generative ai", "gen ai", "genai", "chatgpt", "gpts", "text generation", "gans", "ai internship"
+      ],
+      "response": "**Cognix:** **Here are the details for the Generative AI Internship:**\n\n**Topics Covered:** Text Generation, Image Generation, Markov Chains, GANs, Neural Style Transfer\n\nProjects: Text generation with GPT-2, Image generation, Text generation with Markov Chains, Image generation with GANs, Neural Style Transfer\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Generative+AI)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "software_testing": {
+      "keywords": [
+        "software testing", "testing", "qa", "manual testing", "automation testing", "test engineer"
+      ],
+      "response": "**Cognix:** **Here are the details for the Software Testing Internship:**\n\n**Topics Covered:** Manual Testing, Automation Testing, API Testing, Performance Testing, Unit Testing\n\nProjects: Test cases, Conduct compatibility testing, Automate test cases, Cross-browser testing\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Software+Testing)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "cyber_security": {
+      "keywords": [
+        "cyber security", "cybersecurity", "security", "ethical hacking", "infosec", "network security"
+      ],
+      "response": "**Cognix:** **Here are the details for the Cyber Security Internship:**\n\n**Topics Covered:** Cyber Security Fundamentals, Network Security, Cryptography, Security Tools\n\nProjects: Implement Caesar Cipher, Password complexity checker, Simple keylogger, Network packet analyzer\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Cyber+Security)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "android_dev": {
+      "keywords": [
+        "android development", "android", "mobile app", "app dev", "kotlin", "app development"
+      ],
+      "response": "**Cognix:** **Here are the details for the Android Development Internship:**\n\n**Topics Covered:** Android, Kotlin, Flutter, React Native\n\nProjects: Calculator App, To-Do List App, Weather App, BMI Calculator, Note-Taking App\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://prodigyinfotech.dev/apply?entry.873259196=Android+Development)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "react_js": {
+      "keywords": [
+        "react", "react js", "reactjs", "react.js", "frontend react"
+      ],
+      "response": "**Cognix:** **Here are the details for the React JS Internship:**\n\n**Topics Covered:** React Basics, React Hooks, Redux\n\nProjects: Portfolio Website, E-commerce Store, Blog Application, Task Management App, Weather Dashboard\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://forms.gle/gXB7dbmRpSmVvpqM7)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "ui_ux": {
+      "keywords": [
+        "ui/ux", "ui ux", "ui/ux design", "user interface", "user experience", "figma", "adobe xd"
+      ],
+      "response": "**Cognix:** **Here are the details for the UI/UX Design Internship:**\n\n**Topics Covered:** UI/UX Design Basics, Figma, Adobe XD\n\nProjects: Mobile App Interface, Website Redesign, Landing Page Design, Dashboard Design, Icon Set Design\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://forms.gle/1N5VqxYueBMGpY3KA)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "python_dev": {
+      "keywords": [
+        "python", "django", "flask", "python internship", "py"
+      ],
+      "response": "**Cognix:** **Here are the details for the Python Programming Internship:**\n\n**Topics Covered:** Python Basics, Django, Flask, Data Analysis\n\nProjects: Web Scraper, Blog App, Data Visualization, REST API, Chatbot\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://forms.gle/1N5VqxYueBMGpY3KA)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "java_dev": {
+      "keywords": [
+        "java", "spring", "spring boot", "hibernate", "java internship"
+      ],
+      "response": "**Cognix:** **Here are the details for the Java Development Internship:**\n\n**Topics Covered:** Java Basics, Spring Framework, Hibernate\n\nProjects: Banking System, E-commerce App, Library Management, Online Quiz, Chat Application\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://forms.gle/1N5VqxYueBMGpY3KA)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "javascript_dev": {
+      "keywords": [
+        "javascript", "js", "nodejs", "node.js", "js internship"
+      ],
+      "response": "**Cognix:** **Here are the details for the JavaScript Development Internship:**\n\n**Topics Covered:** JavaScript Basics, React, Node.js\n\nProjects: To-Do List App, Weather App, BMI Calculator, Note-Taking App\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://forms.gle/gXB7dbmRpSmVvpqM7)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "cpp_dev": {
+      "keywords": [
+        "c++", "cpp", "c plus plus", "c++ programming", "c++ internship"
+      ],
+      "response": "**Cognix:** **Here are the details for the C++ Programming Internship:**\n\n**Topics Covered:** C++ Basics, Data Structures, Algorithms\n\nProjects: Calculator App, To-Do List App, Weather App, BMI Calculator, Note-Taking App\n- **Duration:** 1 or 2 months\n- **Mode:** 100% Online\n- **Benefits:** Verified Certificate + Offer Letter + Flexible Work Hours🎓\n\n[Apply Here](https://forms.gle/1N5VqxYueBMGpY3KA)\n\nFeel free to ask about specific projects or details!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "projects": {
+      "keywords": [
+        "project", "projects", "project guidelines", "project info",
+        "assignments", "tasks", "submission", "submit project",
+        "how to submit", "project details", "project list"
+      ],
+      "response": "**Cognix:** **Project Guidelines:**\n- 5 Projects per internship\n- Topics provided\n- Sample datasets included\n- Submit via GitHub or file upload\n- Flexible deadlines\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "certificate": {
+      "keywords": [
+        "certificate", "certification", "lor",
+        "letter of recommendation", "recognition",
+        "completion certificate", "do i get a certificate",
+        "will i get certificate", "credentials"
+      ],
+      "response": "**Cognix:** **Certification Info:**\n- You get a completion certificate after submitting projects.\n- Top performers also receive a Letter of Recommendation (LOR).\n- LinkedIn shoutouts for standout interns!\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "application": {
+      "keywords": [
+        "application process", "apply", "how to apply", "application",
+        "register", "registration", "sign up", "signup", "enroll",
+        "enrollment", "how do i join", "join", "how to register"
+      ],
+      "response": "**Cognix:** **Application Steps:**\n1. Go to the given link.\n2. Select your internship\n3. Fill in your details\n4. Submit & wait for confirmation email 📧\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "contact": {
+      "keywords": [
+        "contact", "support", "help", "reach out", "email",
+        "phone", "customer support", "get in touch", "helpline",
+        "query", "complaint", "feedback"
+      ],
+      "response": "**Cognix:** **Contact Us:**\n- 📧 Email: [contact@codsoft.in](mailto:contact@codsoft.in) and [contact@prodigyinfotech.dev](mailto:contact@prodigyinfotech.dev)\n- 🌐 Website: [codsoft.in](https://www.codsoft.in) and [prodigyinfotech.dev](https://prodigyinfotech.dev/)\n\n🔙 Type 'main menu' to go back to the Main Menu."
+    },
+
+    "greeting": {
+      "keywords": [
+        "hello", "hi", "hey", "good morning", "good afternoon",
+        "good evening", "howdy", "what's up", "sup",
+        "greetings", "namaste"
+      ],
+      "response": "**Cognix:** Hello there! 👋 Welcome to AI Internship Assistant!\n\nYou can ask about:\n- Internship Opportunities\n- Project Guidelines\n- Application Process\n- Certificates\n- Support / Contact Us\n\nHow can I help you today?"
+    },
+
+    "thanks": {
+      "keywords": [
+        "thank", "thanks", "thank you", "thx", "appreciate",
+        "great help", "helpful", "awesome", "nice"
+      ],
+      "response": "**Cognix:** You're welcome! 😊 Happy to help!\n\nFeel free to ask anything else, or type 'main menu' to start over."
+    }
+  }
+}

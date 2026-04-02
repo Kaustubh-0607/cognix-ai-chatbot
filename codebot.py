@@ -1,0 +1,301 @@
+"""
+Cognix — AI Internship Assistant (Streamlit).
+
+Hybrid chatbot: rule-based matching for known intents (instant),
+Google Gemini AI for complex / unknown queries (smart).
+
+All intent data and AI settings are loaded from `intents.json`.
+API key is loaded from `.env`.
+"""
+
+import json
+import os
+import re
+from pathlib import Path
+
+import streamlit as st
+from dotenv import load_dotenv
+from thefuzz import fuzz, process
+
+# ──────────────────────────────────────────────
+# Load environment variables and configuration
+# ──────────────────────────────────────────────
+load_dotenv(Path(__file__).parent / ".env")
+
+CONFIG_PATH = Path(__file__).parent / "intents.json"
+
+
+def load_config(path: str) -> dict:
+    """Read and parse the intents JSON file."""
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
+
+
+config = load_config(str(CONFIG_PATH))
+settings = config["settings"]
+ai_settings = config.get("ai_settings", {})
+INTENTS = config["intents"]
+
+FUZZY_THRESHOLD = settings.get("fuzzy_threshold", 60)
+MIN_TOKEN_LEN = settings.get("min_token_length", 3)
+WELCOME_MSG = settings["welcome_message"]
+FALLBACK_MSG = settings["fallback_response"]
+BOT_NAME = settings["bot_name"]
+
+# ──────────────────────────────────────────────
+# Gemini AI setup
+# ──────────────────────────────────────────────
+AI_ENABLED = ai_settings.get("enable_ai", False)
+GEMINI_MODEL = ai_settings.get("model_name", "gemini-2.0-flash")
+SYSTEM_PROMPT = ai_settings.get("system_prompt", "")
+
+gemini_model = None  # Will be initialized if AI is enabled
+
+if AI_ENABLED:
+    api_key = os.getenv("GEMINI_API_KEY", "")
+    if api_key and api_key != "PASTE_YOUR_API_KEY_HERE":
+        try:
+            import google.generativeai as genai
+
+            genai.configure(api_key=api_key)
+            gemini_model = genai.GenerativeModel(
+                model_name=GEMINI_MODEL,
+                system_instruction=SYSTEM_PROMPT,
+            )
+            AI_READY = True
+        except Exception as e:
+            AI_READY = False
+            st.sidebar.warning(f"⚠️ Gemini AI failed to initialize: {e}")
+    else:
+        AI_READY = False
+else:
+    AI_READY = False
+
+
+def ask_gemini(user_msg: str, chat_history: list) -> str:
+    """
+    Send the user's message + conversation history to Gemini
+    and return the AI-generated response.
+    """
+    if not AI_READY:
+        return FALLBACK_MSG
+
+    try:
+        # Build conversation context from chat history
+        history = []
+        for msg in chat_history[-10:]:  # Last 10 messages for context
+            role = "user" if msg["role"] == "user" else "model"
+            history.append({"role": role, "parts": [msg["content"]]})
+
+        # Start a chat session with history for follow-up support
+        chat = gemini_model.start_chat(history=history)
+        response = chat.send_message(user_msg)
+        return response.text
+
+    except Exception as e:
+        return (
+            f"**{BOT_NAME}:** I'm having trouble connecting to my AI brain right now. 😅\n\n"
+            f"Error: `{e}`\n\n"
+            "In the meantime, try asking about specific topics like:\n"
+            "- Internship Opportunities\n"
+            "- Project Guidelines\n"
+            "- How to Apply\n\n"
+            "Type **'main menu'** to see all options."
+        )
+
+
+# ──────────────────────────────────────────────
+# Streamlit page setup
+# ──────────────────────────────────────────────
+st.set_page_config(page_title=settings["page_title"], layout="centered")
+st.title(f"🤖 {BOT_NAME} - {settings['page_title']}")
+st.markdown(settings["subtitle"])
+
+# Sidebar: AI status indicator
+with st.sidebar:
+    st.markdown("### ⚙️ Bot Settings")
+    if AI_READY:
+        st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
+        st.caption("Complex questions are answered by Google Gemini AI.")
+    else:
+        st.info("📋 AI Mode: **OFF** (Rule-based only)")
+        if AI_ENABLED and not AI_READY:
+            st.warning("Check your API key in `.env`")
+        st.caption("The bot uses keyword matching for known topics.")
+    st.divider()
+    st.markdown(
+        "**Tip:** Type `main menu` anytime to go back to the start."
+    )
+
+
+# ──────────────────────────────────────────────
+# Intent matching engine (rule-based)
+# ──────────────────────────────────────────────
+def match_intent(user_msg: str) -> str | None:
+    """
+    Match user input to the best intent using a three-pass strategy:
+
+    1. Whole-word substring match — covers obvious, exact cases
+    2. Token overlap match       — catches keyword hits (tokens ≥ MIN_TOKEN_LEN chars)
+    3. Fuzzy match (thefuzz)     — handles typos and partial phrases
+
+    Returns the intent key, or None if no match meets the threshold.
+    """
+    msg = user_msg.lower().strip()
+
+    best_intent = None
+    best_score = 0
+
+    for intent_key, intent_data in INTENTS.items():
+        keywords = intent_data["keywords"]
+
+        # ── Pass 1: whole-word substring match ──
+        for kw in keywords:
+            pattern = r"\b" + re.escape(kw) + r"\b"
+            if re.search(pattern, msg):
+                score = 100 + len(kw)
+                if score > best_score:
+                    best_score = score
+                    best_intent = intent_key
+
+        # ── Pass 2: token overlap (tokens ≥ MIN_TOKEN_LEN chars) ──
+        msg_tokens = {t for t in msg.split() if len(t) >= MIN_TOKEN_LEN}
+        for kw in keywords:
+            kw_tokens = {t for t in kw.split() if len(t) >= MIN_TOKEN_LEN}
+            if not kw_tokens:
+                continue
+            overlap = msg_tokens & kw_tokens
+            if overlap:
+                score = int((len(overlap) / len(kw_tokens)) * 90)
+                if score > best_score:
+                    best_score = score
+                    best_intent = intent_key
+
+        # ── Pass 3: fuzzy match ──
+        best_kw, fuzzy_score = process.extractOne(
+            msg, keywords, scorer=fuzz.token_sort_ratio
+        )
+        if fuzzy_score > best_score and fuzzy_score >= FUZZY_THRESHOLD:
+            best_score = fuzzy_score
+            best_intent = intent_key
+
+    # ── Special handling for very short inputs (≤ 3 chars) ──
+    if len(msg) <= 3 and best_score < 100:
+        for intent_key, intent_data in INTENTS.items():
+            if msg in intent_data["keywords"]:
+                return intent_key
+        return None
+
+    return best_intent
+
+
+# ──────────────────────────────────────────────
+# Smart routing patterns (send these to AI, not rules)
+# ──────────────────────────────────────────────
+AI_ROUTE_PATTERNS = [
+    # Comparisons & decisions
+    r"\bcompare\b", r"\bvs\.?\b", r"\bversus\b",
+    r"\bdifference\s+between\b", r"\bwhich\s+is\s+better\b",
+    r"\bwhich\s+one\b", r"\bwhich\s+should\b",
+    r"\brecommend\b", r"\bsuggest\b", r"\bbest\s+for\b",
+    r"\bshould\s+i\b", r"\bpros\s+and\s+cons\b",
+    r"\badvise\b", r"\bguidance\b", r"\bpath\b",
+    r"\bcareer\b", r"\bbeginner\b", r"\bno\s+experience\b",
+    r"\bwhat\s+should\b", r"\bhelp\s+me\s+choose\b",
+    # Conversational / fun
+    r"\bjoke\b", r"\bfunny\b", r"\btell\s+me\b",
+    r"\bwhat\s+is\b", r"\bhow\s+does\b", r"\bwhy\s+is\b",
+    r"\bexplain\b", r"\bwhat\s+are\b", r"\bfun\s+fact\b",
+    r"\bwho\s+are\s+you\b", r"\bwhat\s+can\s+you\s+do\b",
+    r"\bthanks?\b", r"\bthank\s+you\b",
+]
+
+
+def is_complex_query(msg: str) -> bool:
+    """Check if the message is a complex question that the AI should handle."""
+    lower = msg.lower()
+    return any(re.search(p, lower) for p in AI_ROUTE_PATTERNS)
+
+
+# ──────────────────────────────────────────────
+# Chatbot reply (hybrid: rule-based → AI fallback)
+# ──────────────────────────────────────────────
+def chatbot_reply(user_msg: str) -> str:
+    """
+    Return the bot response for a given user message.
+
+    Strategy:
+    1. Check for "main menu" → reset chat (always rule-based)
+    2. If AI is ready AND query looks complex → route to Gemini
+    3. Otherwise → try rule-based matching
+    4. If no rule match → fall back to Gemini AI (if enabled)
+    5. If AI is off → return static fallback message
+    """
+    msg_lower = user_msg.lower().strip()
+
+    # Always handle main menu via rules
+    if "main menu" in msg_lower or msg_lower == "menu":
+        intent_data = INTENTS.get("main_menu", {})
+        if intent_data.get("reset_chat"):
+            st.session_state.messages = [
+                {"role": BOT_NAME, "content": WELCOME_MSG}
+            ]
+        return intent_data.get("response", WELCOME_MSG)
+
+    # Route complex questions to AI (comparisons, recommendations, etc.)
+    if AI_READY and is_complex_query(user_msg):
+        return ask_gemini(user_msg, st.session_state.get("messages", []))
+
+    # Try rule-based matching
+    intent = match_intent(user_msg)
+
+    if intent is not None:
+        intent_data = INTENTS[intent]
+
+        if intent_data.get("reset_chat"):
+            st.session_state.messages = [
+                {"role": BOT_NAME, "content": WELCOME_MSG}
+            ]
+
+        return intent_data["response"]
+
+    # No rule-based match → try AI
+    if AI_READY:
+        return ask_gemini(user_msg, st.session_state.get("messages", []))
+
+    return FALLBACK_MSG
+
+
+# ──────────────────────────────────────────────
+# Streamlit chat UI
+# ──────────────────────────────────────────────
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": BOT_NAME, "content": WELCOME_MSG}
+    ]
+
+# Display chat history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# User input
+user_input = st.chat_input("Type your question here...")
+
+# Process new user input
+if user_input:
+    user_display = f"User: {user_input}"
+    st.session_state.messages.append({"role": "user", "content": user_display})
+
+    with st.chat_message("user"):
+        st.markdown(user_display)
+
+    # Show a spinner while generating AI responses
+    with st.chat_message("bot"):
+        with st.spinner("Thinking..."):
+            response = chatbot_reply(user_input)
+        st.markdown(response)
+
+    st.session_state.messages.append({"role": "bot", "content": response})
