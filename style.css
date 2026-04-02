@@ -147,7 +147,8 @@ div[class*="stAppBottomBlock"] {
     border-radius: 30px !important;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
     padding: 5px !important;
-    z-index: 9999 !important; /* Ensure it stays on top and clickable */
+    position: relative !important;
+    pointer-events: auto !important;
 }
 
 /* Clear ONLY the dark-grey backgrounds on all inner nested elements without breaking layout/clicks */
@@ -155,8 +156,10 @@ div[class*="stAppBottomBlock"] {
     background-color: transparent !important;
 }
 
-[data-testid="stChatInput"] > div textarea {
+[data-testid="stChatInput"] > div textarea,
+[data-testid="stChatInput"] > div button {
     background-color: transparent !important;
+    pointer-events: auto !important;
 }
 
 /* Style the text area inside the pill */
