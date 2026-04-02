@@ -150,12 +150,13 @@ div[class*="stAppBottomBlock"] {
     z-index: 9999 !important; /* Ensure it stays on top and clickable */
 }
 
-/* Make inner layout wrappers transparent without breaking the text area and buttons */
-[data-testid="stChatInput"] > div > div, 
-[data-testid="stChatInput"] > div > div > div {
+/* Clear ONLY the dark-grey backgrounds on all inner nested elements without breaking layout/clicks */
+[data-testid="stChatInput"] > div div {
     background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
+}
+
+[data-testid="stChatInput"] > div textarea {
+    background-color: transparent !important;
 }
 
 /* Style the text area inside the pill */
