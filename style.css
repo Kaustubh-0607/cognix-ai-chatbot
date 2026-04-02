@@ -109,13 +109,13 @@ h1 {
     color: white !important;
 }
 
-/* Remove ANY black/grey/white block behind chat input recursively */
+/* Force ALL wrappers of the chat input to be completely transparent without exceptions */
+div:has(> [data-testid="stChatInput"]),
+div:has(> div > [data-testid="stChatInput"]),
+div:has(> div > div > [data-testid="stChatInput"]),
 [data-testid="stBottomBlockContainer"], 
 [data-testid="stBottom"],
-[data-testid="stHeader"],
-.stAppBottomBlock,
-div[class*="stBottom"],
-div[class*="stAppBottomBlock"] {
+.stAppBottomBlock {
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
@@ -128,14 +128,14 @@ div[class*="stAppBottomBlock"] {
     background: transparent !important;
 }
 
-/* Light Text area input - Outer Container */
+/* Transparent Glass Text area input */
 [data-testid="stChatInput"] {
-    background: rgb(255, 255, 255) !important; 
-    background-color: rgb(255, 255, 255) !important; 
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    background: transparent !important; 
+    background-color: transparent !important; 
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 24px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
-    padding: 0px !important; /* Remove inner padding to eliminate double-box effect */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    padding: 0px !important; 
 }
 
 /* Fix overlapping search bar: make all internal Streamlit divs transparent */
@@ -148,17 +148,17 @@ div[class*="stAppBottomBlock"] {
 }
 
 [data-testid="stChatInput"] textarea {
-    color: #1a1a3e !important; /* Dark text for contrast */
+    color: #ffffff !important; /* White text for contrast */
     background-color: transparent !important;
     font-weight: 500;
 }
 
 [data-testid="stChatInput"] textarea::placeholder {
-    color: rgba(26, 26, 62, 0.5) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 [data-testid="stChatInput"] svg {
-    fill: #6c3ce0 !important; /* Make send button purple */
+    fill: #ffffff !important; /* Send button white */
 }
 
 /* Alert Boxes in Sidebar */
