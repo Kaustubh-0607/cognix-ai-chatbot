@@ -109,23 +109,33 @@ h1 {
     color: white !important;
 }
 
-/* Text area input fix */
-[data-testid="stChatInput"] {
-    background: rgba(20, 20, 40, 0.8) !important; /* Darker background */
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-[data-testid="stChatInput"] textarea {
-    color: #ffffff !important;
+/* Remove black block behind chat input */
+[data-testid="stBottomBlockContainer"], 
+.stAppBottomBlock {
+    background: transparent !important;
     background-color: transparent !important;
 }
 
+/* Light Text area input */
+[data-testid="stChatInput"] {
+    background: rgb(255, 255, 255) !important; 
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+    color: #1a1a3e !important; /* Dark text for contrast */
+    background-color: transparent !important;
+    font-weight: 500;
+}
+
 [data-testid="stChatInput"] textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(26, 26, 62, 0.5) !important;
+}
+
+[data-testid="stChatInput"] svg {
+    fill: #6c3ce0 !important; /* Make send button purple */
 }
 
 /* Alert Boxes in Sidebar */
