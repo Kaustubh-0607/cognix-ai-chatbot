@@ -109,19 +109,33 @@ h1 {
     color: white !important;
 }
 
-/* Remove black block behind chat input */
+/* Remove ANY black/grey block behind chat input recursively */
 [data-testid="stBottomBlockContainer"], 
-.stAppBottomBlock {
+[data-testid="stBottom"],
+.stAppBottomBlock,
+div[class*="stBottom"] {
     background: transparent !important;
     background-color: transparent !important;
+    border: none !important;
 }
 
-/* Light Text area input */
+/* Light Text area input - Outer Container */
 [data-testid="stChatInput"] {
     background: rgb(255, 255, 255) !important; 
+    background-color: rgb(255, 255, 255) !important; 
     border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    border-radius: 20px !important;
+    border-radius: 24px !important;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+    padding: 0px !important; /* Remove inner padding to eliminate double-box effect */
+}
+
+/* Fix overlapping search bar: make all internal Streamlit divs transparent */
+[data-testid="stChatInput"] > div,
+[data-testid="stChatInput"] > div > div {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 [data-testid="stChatInput"] textarea {
