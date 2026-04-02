@@ -109,13 +109,13 @@ h1 {
     color: white !important;
 }
 
-/* Force ALL wrappers of the chat input to be completely transparent without exceptions */
-div:has(> [data-testid="stChatInput"]),
-div:has(> div > [data-testid="stChatInput"]),
-div:has(> div > div > [data-testid="stChatInput"]),
+/* Remove ANY black/grey/white block behind chat input recursively */
 [data-testid="stBottomBlockContainer"], 
 [data-testid="stBottom"],
-.stAppBottomBlock {
+[data-testid="stHeader"],
+.stAppBottomBlock,
+div[class*="stBottom"],
+div[class*="stAppBottomBlock"] {
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
@@ -128,37 +128,44 @@ div:has(> div > div > [data-testid="stChatInput"]),
     background: transparent !important;
 }
 
-/* Transparent Glass Text area input */
+/* Make the full-width outer Chat Input wrapper completely transparent */
 [data-testid="stChatInput"] {
     background: transparent !important; 
     background-color: transparent !important; 
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 24px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
-    padding: 0px !important; 
-}
-
-/* Fix overlapping search bar: make all internal Streamlit divs transparent */
-[data-testid="stChatInput"] > div,
-[data-testid="stChatInput"] > div > div {
-    background: transparent !important;
-    background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
 
+/* Target the actual inner Search Bar to make it a white floating pill */
+[data-testid="stChatInput"] > div {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
+    padding: 5px !important;
+}
+
+/* Make deeper inner wrappers transparent so they don't block the white pill */
+[data-testid="stChatInput"] > div > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Style the text area inside the pill */
 [data-testid="stChatInput"] textarea {
-    color: #ffffff !important; /* White text for contrast */
+    color: #1a1a3e !important; /* Dark text for contrast */
     background-color: transparent !important;
     font-weight: 500;
 }
 
 [data-testid="stChatInput"] textarea::placeholder {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: rgba(26, 26, 62, 0.5) !important;
 }
 
 [data-testid="stChatInput"] svg {
-    fill: #ffffff !important; /* Send button white */
+    fill: #6c3ce0 !important; /* Make send button purple */
 }
 
 /* Alert Boxes in Sidebar */
