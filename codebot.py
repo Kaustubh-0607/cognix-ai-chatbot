@@ -107,9 +107,20 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
 # ──────────────────────────────────────────────
 # Streamlit page setup
 # ──────────────────────────────────────────────
-st.set_page_config(page_title=settings["page_title"], layout="centered")
-st.title(f"🤖 {BOT_NAME} - {settings['page_title']}")
-st.markdown(settings["subtitle"])
+st.set_page_config(page_title=settings["page_title"], page_icon="🤖", layout="centered")
+
+# Load and inject custom CSS
+def load_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+try:
+    load_css(Path(__file__).parent / "style.css")
+except FileNotFoundError:
+    pass
+
+st.markdown(f"<h1>🤖 {BOT_NAME} - {settings['page_title']}</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 2rem;'>{settings['subtitle']}</p>", unsafe_allow_html=True)
 
 # Sidebar: AI status indicator
 with st.sidebar:
@@ -273,29 +284,34 @@ def chatbot_reply(user_msg: str) -> str:
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
-        {"role": BOT_NAME, "content": WELCOME_MSG}
+        {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
     ]
 
 # Display chat history
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
+    # Use 🤖 for assistant and 🧑‍💻 for user
+    avatar = msg.get("avatar") or ("🤖" if msg["role"] == "assistant" else "🧑‍💻")
+    with st.chat_message(msg["role"], avatar=avatar):
+        # Clean up any legacy prefix for cleaner UI
+        content = msg["content"].replace("**Cognix:** ", "").replace("User: ", "")
+        st.markdown(content)
 
 # User input
 user_input = st.chat_input("Type your question here...")
 
 # Process new user input
 if user_input:
-    user_display = f"User: {user_input}"
-    st.session_state.messages.append({"role": "user", "content": user_display})
+    st.session_state.messages.append({"role": "user", "content": user_input, "avatar": "🧑‍💻"})
 
-    with st.chat_message("user"):
-        st.markdown(user_display)
+    with st.chat_message("user", avatar="🧑‍💻"):
+        st.markdown(user_input)
 
     # Show a spinner while generating AI responses
-    with st.chat_message("bot"):
+    with st.chat_message("assistant", avatar="🤖"):
         with st.spinner("Thinking..."):
             response = chatbot_reply(user_input)
-        st.markdown(response)
+            # Remove legacy prefix if present for cleaner bubble
+            clean_response = response.replace("**Cognix:** ", "").strip()
+        st.markdown(clean_response)
 
-    st.session_state.messages.append({"role": "bot", "content": response})
+    st.session_state.messages.append({"role": "assistant", "content": clean_response, "avatar": "🤖"})

@@ -1,0 +1,164 @@
+/* 
+  Cognix Premium Dark Theme 
+  Futuristic, Glassmorphism UI 
+*/
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Global Font Override */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Background Gradient & Main Container */
+.stApp {
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%);
+    color: #e8e8f0;
+}
+
+/* Sidebar styling (Glassmorphism) */
+[data-testid="stSidebar"] {
+    background: rgba(15, 15, 30, 0.6) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Sidebar Text & Dividers */
+[data-testid="stSidebar"] hr {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Header & Title adjustments */
+header {
+    background: transparent !important;
+}
+
+h1 {
+    background: linear-gradient(90deg, #a855f7, #00d4aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700 !important;
+    text-align: center;
+    padding-bottom: 0.5em;
+}
+
+/* Chat Input Bar (Glassmorphism + Glow) */
+[data-testid="stChatInput"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+[data-testid="stChatInput"] textarea {
+    color: #fff !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Chat Bubbles - General */
+[data-testid="stChatMessageContent"] {
+    color: #ffffff !important;
+}
+[data-testid="stChatMessageContent"] p, 
+[data-testid="stChatMessageContent"] li, 
+[data-testid="stChatMessageContent"] h1, 
+[data-testid="stChatMessageContent"] h2, 
+[data-testid="stChatMessageContent"] h3 {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-testid="chatAvatarIcon-user"] {
+    background-color: transparent !important;
+}
+[data-testid="chatAvatarIcon-assistant"] {
+    background-color: transparent !important;
+}
+
+/* User Message Bubble */
+[data-testid="stChatMessage"]:nth-child(even) {
+    background: linear-gradient(135deg, #6c3ce0 0%, #a855f7 100%) !important;
+    border-radius: 20px 20px 0 20px !important;
+    padding: 1rem !important;
+    margin-left: auto !important;
+    margin-bottom: 1rem !important;
+    max-width: 85% !important;
+    box-shadow: 0 4px 15px rgba(108, 60, 224, 0.4) !important;
+    border: none !important;
+    color: white !important;
+}
+
+/* Bot Message Bubble (Glass Card) */
+[data-testid="stChatMessage"]:nth-child(odd) {
+    background: rgba(20, 20, 40, 0.7) !important; /* Darker glass for contrast */
+    border-radius: 20px 20px 20px 0 !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin-right: auto !important;
+    max-width: 85% !important;
+    color: white !important;
+}
+
+/* Text area input fix */
+[data-testid="stChatInput"] {
+    background: rgba(20, 20, 40, 0.8) !important; /* Darker background */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+[data-testid="stChatInput"] textarea {
+    color: #ffffff !important;
+    background-color: transparent !important;
+}
+
+[data-testid="stChatInput"] textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Alert Boxes in Sidebar */
+.stAlert {
+    border-radius: 12px !important;
+    border: none !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Bot Status Indicator - Glowing Green */
+div[data-testid="stMarkdownContainer"] p:contains("AI Mode: **ON**") {
+    color: #00d4aa !important;
+    text-shadow: 0 0 10px rgba(0, 212, 170, 0.5);
+    font-weight: 600;
+}
+
+/* Hide default streamlit menu to look more professional */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
