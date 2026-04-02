@@ -14,18 +14,8 @@ import re
 from pathlib import Path
 
 import streamlit as st
-import streamlit.components.v1 as components
 from dotenv import load_dotenv
 from thefuzz import fuzz, process
-import requests
-from streamlit_lottie import st_lottie
-
-@st.cache_data
-def load_lottieurl(url: str):
-    r = requests.get(url)
-    if r.status_code != 200:
-        return None
-    return r.json()
 
 # ──────────────────────────────────────────────
 # Load environment variables and configuration
@@ -65,13 +55,8 @@ if AI_ENABLED:
     api_key = os.getenv("GEMINI_API_KEY", "")
     if api_key and api_key != "PASTE_YOUR_API_KEY_HERE":
         try:
-            import google.generativeai as genai
-
-            genai.configure(api_key=api_key)
-            gemini_model = genai.GenerativeModel(
-                model_name=GEMINI_MODEL,
-                system_instruction=SYSTEM_PROMPT,
-            )
+            from google import genai
+            gemini_client = genai.Client(api_key=api_key)
             AI_READY = True
         except Exception as e:
             AI_READY = False
@@ -91,14 +76,19 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
         return FALLBACK_MSG
 
     try:
+        from google.genai import types
         # Build conversation context from chat history
         history = []
         for msg in chat_history[-10:]:  # Last 10 messages for context
             role = "user" if msg["role"] == "user" else "model"
-            history.append({"role": role, "parts": [msg["content"]]})
+            history.append({"role": role, "parts": [{"text": msg["content"]}]})
 
         # Start a chat session with history for follow-up support
-        chat = gemini_model.start_chat(history=history)
+        chat = gemini_client.chats.create(
+            model=GEMINI_MODEL, 
+            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
+            history=history
+        )
         response = chat.send_message(user_msg)
         return response.text
 
@@ -134,16 +124,6 @@ st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin
 
 # Sidebar: AI status indicator
 with st.sidebar:
-    st.markdown("### ❇️ Cognix UI Core")
-    # Elegant 3D Spline Object (Floating abstract shape)
-    components.html(
-        """
-        <script type="module" src="https://unpkg.com/@splinetool/viewer@1.9.7/build/spline-viewer.js"></script>
-        <spline-viewer loading-anim-type="none" url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode"></spline-viewer>
-        """,
-        height=200
-    )
-    
     st.markdown("### ⚙️ Bot Settings")
     if AI_READY:
         st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
@@ -326,25 +306,12 @@ if user_input:
     with st.chat_message("user", avatar="🧑‍💻"):
         st.markdown(user_input)
 
-    # Show a smooth Lottie animation while generating AI responses
+    # Show a spinner while generating AI responses
     with st.chat_message("assistant", avatar="🤖"):
-        loader_placeholder = st.empty()
-        
-        with loader_placeholder:
-            # Elegant minimal 2D typing dots (Lottie)
-            lottie_url = "https://assets3.lottiefiles.com/packages/lf20_usmfx6bp.json"
-            lottie_json = load_lottieurl(lottie_url)
-            if lottie_json:
-                st_lottie(lottie_json, height=40, width=80, key="typing_indicator")
-            else:
-                st.markdown("*Thinking...*")
-                
-        response = chatbot_reply(user_input)
-        
-        loader_placeholder.empty() # Clear loading animation gracefully
-        
-        # Remove legacy prefix if present for cleaner bubble
-        clean_response = response.replace("**Cognix:** ", "").strip()
+        with st.spinner("Thinking..."):
+            response = chatbot_reply(user_input)
+            # Remove legacy prefix if present for cleaner bubble
+            clean_response = response.replace("**Cognix:** ", "").strip()
         st.markdown(clean_response)
 
     st.session_state.messages.append({"role": "assistant", "content": clean_response, "avatar": "🤖"})
