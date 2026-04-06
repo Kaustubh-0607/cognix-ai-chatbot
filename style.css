@@ -139,14 +139,15 @@ div[class*="stAppBottomBlock"] {
     box-shadow: none !important;
 }
 
-/* Target the actual inner Search Bar to make it a white floating pill */
+/* Target the actual inner Search Bar to make it a dark glass floating pill */
 [data-testid="stChatInput"] > div {
-    background: #ffffff !important;
-    background-color: #ffffff !important;
-    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    background: rgba(20, 20, 40, 0.9) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     border-radius: 30px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3) !important;
-    padding: 5px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+    padding: 5px 10px !important;
     position: relative !important;
     pointer-events: auto !important;
 }
@@ -164,17 +165,17 @@ div[class*="stAppBottomBlock"] {
 
 /* Style the text area inside the pill */
 [data-testid="stChatInput"] > div textarea {
-    color: #1a1a3e !important; /* Dark text for contrast */
-    caret-color: #1a1a3e !important; /* Make the typing cursor visible */
-    font-weight: 500;
+    color: #ffffff !important; /* Bright white text for dark mode */
+    caret-color: #a855f7 !important; /* Purple cursor */
+    font-weight: 400;
 }
 
 [data-testid="stChatInput"] textarea::placeholder {
-    color: rgba(26, 26, 62, 0.5) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
 }
 
 [data-testid="stChatInput"] svg {
-    fill: #6c3ce0 !important; /* Make send button purple */
+    fill: #00d4aa !important; /* Glowing cyan send button for contrast */
 }
 
 /* Alert Boxes in Sidebar */
@@ -193,8 +194,13 @@ div[data-testid="stMarkdownContainer"] p:contains("AI Mode: **ON**") {
 }
 
 /* Hide default streamlit menu to look more professional */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
+#MainMenu {display: none !important;}
+footer {display: none !important;}
+
+/* Squeeze the bottom gap so chat input sits strictly at the physical bottom */
+.stAppBottomBlock, [data-testid="stBottom"] {
+    padding-bottom: 15px !important;
+}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -210,4 +216,71 @@ footer {visibility: hidden;}
 }
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.4);
+}
+
+/* ────────────────────────────────────────────── */
+/* Pin Quick Options (Pills) to Bottom            */
+/* ────────────────────────────────────────────── */
+
+/* Hide the marker container entirely so it occupies no vertical space */
+div[data-testid="stElementContainer"]:has(.pill-marker) {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 
+Target the immediate next container (the pills block) and fix it above the chat input.
+This relies ONLY on the document structure and ignores Streamlit widget IDs.
+*/
+div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
+    position: sticky !important;
+    bottom: 105px !important;  /* Balanced distance to comfortably sit precisely above the search bar */
+    z-index: 1000 !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+    padding: 0 1rem !important;
+    background: transparent !important;
+    pointer-events: none !important; /* Lets clicks pass through the space between pills */
+}
+
+/* Allow clicking the buttons and center them */
+div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] > div {
+    pointer-events: auto !important;
+    justify-content: center !important;
+}
+
+/* Style the buttons */
+div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] button {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    background: rgba(20, 20, 40, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ────────────────────────────────────────────── */
+/* Option A: Frosted Glass Footer Dock            */
+/* ────────────────────────────────────────────── */
+.stAppBottomBlock {
+    /* Ensures Streamlit's native bottom block acts as the foundation */
+    z-index: 100 !important;
+}
+
+.stAppBottomBlock::before {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important; 
+    left: 0 !important;
+    width: 100% !important; /* Stretches purely to container width, eliminating the horizontal scrollbar */
+    height: 250px !important; /* Spans up past the pills to catch scrolling text */
+    background: linear-gradient(to bottom, rgba(10, 10, 26, 0) 0%, rgba(10, 10, 26, 0.7) 40%, rgba(10, 10, 26, 0.95) 100%) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
 }
