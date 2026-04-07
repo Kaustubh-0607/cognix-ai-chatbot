@@ -1,4 +1,5 @@
-# Run : .venv\Scripts\python.exe -m streamlit run CodeBot.py
+# Run : .venv\Scripts\python.exe -m streamlit run codebot.py
+
 # 🤖 Cognix — AI Internship Assistant Chatbot
 
 An intelligent, AI-powered chatbot built with **Streamlit** and **Google Gemini AI** that helps students explore and apply for internship programs.

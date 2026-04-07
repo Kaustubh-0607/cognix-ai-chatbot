@@ -107,7 +107,7 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
 # ──────────────────────────────────────────────
 # Streamlit page setup
 # ──────────────────────────────────────────────
-st.set_page_config(page_title=settings["page_title"], page_icon="🤖", layout="centered")
+st.set_page_config(page_title=settings["page_title"], page_icon="🤖", layout="wide")
 
 # Load and inject custom CSS
 def load_css(file_name):
@@ -126,9 +126,15 @@ st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin
 with st.sidebar:
     st.markdown("### ⚙️ Bot Settings")
     if AI_READY:
-        st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
-        st.caption("Complex questions are answered by Google Gemini AI.")
+        use_ai_toggle = st.toggle("Enable AI Mode", value=True)
+        if use_ai_toggle:
+            st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
+            st.caption("Complex questions are answered by Google Gemini AI.")
+        else:
+            st.info("📋 AI Mode: **OFF** (Tokens saved!)")
+            st.caption("The bot uses rule-based keyword matching only.")
     else:
+        use_ai_toggle = False
         st.info("📋 AI Mode: **OFF** (Rule-based only)")
         if AI_ENABLED and not AI_READY:
             st.warning("Check your API key in `.env`")
@@ -231,7 +237,7 @@ def is_complex_query(msg: str) -> bool:
 # ──────────────────────────────────────────────
 # Chatbot reply (hybrid: rule-based → AI fallback)
 # ──────────────────────────────────────────────
-def chatbot_reply(user_msg: str) -> str:
+def chatbot_reply(user_msg: str, use_ai: bool = False) -> str:
     """
     Return the bot response for a given user message.
 
@@ -254,7 +260,7 @@ def chatbot_reply(user_msg: str) -> str:
         return intent_data.get("response", WELCOME_MSG)
 
     # Route complex questions to AI (comparisons, recommendations, etc.)
-    if AI_READY and is_complex_query(user_msg):
+    if use_ai and AI_READY and is_complex_query(user_msg):
         return ask_gemini(user_msg, st.session_state.get("messages", []))
 
     # Try rule-based matching
@@ -271,7 +277,7 @@ def chatbot_reply(user_msg: str) -> str:
         return intent_data["response"]
 
     # No rule-based match → try AI
-    if AI_READY:
+    if use_ai and AI_READY:
         return ask_gemini(user_msg, st.session_state.get("messages", []))
 
     return FALLBACK_MSG
@@ -317,7 +323,7 @@ if user_input:
     # Show a spinner while generating AI responses
     with st.chat_message("assistant", avatar="🤖"):
         with st.spinner("Thinking..."):
-            response = chatbot_reply(user_input)
+            response = chatbot_reply(user_input, use_ai=use_ai_toggle)
             # Remove legacy prefix if present for cleaner bubble
             clean_response = response.replace("**Cognix:** ", "").strip()
         st.markdown(clean_response)
