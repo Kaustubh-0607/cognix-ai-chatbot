@@ -11,10 +11,27 @@ html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
 }
 
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
 /* Background Gradient & Main Container */
 .stApp {
     background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%);
     color: #e8e8f0;
+    min-height: 100vh;
+}
+
+[data-testid="stAppViewContainer"] {
+    min-height: 100vh;
+}
+
+main .block-container {
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    padding-top: 1.25rem !important;
+    padding-bottom: 11rem !important;
 }
 
 /* Sidebar styling (Glassmorphism) */
@@ -87,9 +104,8 @@ h1 {
     background: linear-gradient(135deg, #6c3ce0 0%, #a855f7 100%) !important;
     border-radius: 20px 20px 0 20px !important;
     padding: 1rem !important;
-    margin-left: auto !important;
-    margin-bottom: 1rem !important;
-    max-width: 85% !important;
+    margin: 0 auto 1rem auto !important;
+    max-width: 100% !important;
     box-shadow: 0 4px 15px rgba(108, 60, 224, 0.4) !important;
     border: none !important;
     color: white !important;
@@ -100,13 +116,12 @@ h1 {
     background: rgba(20, 20, 40, 0.7) !important; /* Darker glass for contrast */
     border-radius: 20px 20px 20px 0 !important;
     padding: 1rem !important;
-    margin-bottom: 1rem !important;
+    margin: 0 auto 1rem auto !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    margin-right: auto !important;
-    max-width: 85% !important;
+    max-width: 100% !important;
     color: white !important;
 }
 
@@ -236,12 +251,15 @@ This relies ONLY on the document structure and ignores Streamlit widget IDs.
 */
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
     position: sticky !important;
-    bottom: 105px !important;  /* Balanced distance to comfortably sit precisely above the search bar */
+    left: auto !important;
+    right: auto !important;
+    bottom: 7.80rem !important;
     z-index: 1000 !important;
     display: flex !important;
     justify-content: center !important;
+    align-items: center !important;
     width: 100% !important;
-    padding: 0 1rem !important;
+    padding: 0.25rem 0.5rem !important;
     background: transparent !important;
     pointer-events: none !important; /* Lets clicks pass through the space between pills */
 }
@@ -250,6 +268,11 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] > div {
     pointer-events: auto !important;
     justify-content: center !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
 }
 
 /* Style the buttons */
@@ -264,23 +287,27 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
 /* ────────────────────────────────────────────── */
 /* Option A: Frosted Glass Footer Dock            */
 /* ────────────────────────────────────────────── */
-.stAppBottomBlock {
-    /* Ensures Streamlit's native bottom block acts as the foundation */
-    z-index: 100 !important;
-}
 
-.stAppBottomBlock::before {
+/* Create a universally visible fixed frosted glass dock at the bottom of the app */
+[data-testid="stAppViewContainer"]::after {
     content: '' !important;
-    position: absolute !important;
+    position: fixed !important;
     bottom: 0 !important; 
     left: 0 !important;
-    width: 100% !important; /* Stretches purely to container width, eliminating the horizontal scrollbar */
-    height: 250px !important; /* Spans up past the pills to catch scrolling text */
-    background: linear-gradient(to bottom, rgba(10, 10, 26, 0) 0%, rgba(10, 10, 26, 0.7) 40%, rgba(10, 10, 26, 0.95) 100%) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    z-index: -1 !important;
+    width: 100vw !important; 
+    height: 180px !important; 
+    background: linear-gradient(to bottom, rgba(10, 10, 26, 0) 0%, rgba(10, 10, 26, 0.8) 40%, rgba(10, 10, 26, 1) 100%) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    z-index: 10 !important;
     pointer-events: none !important;
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
-    mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+}
+
+/* Ensure the Chat input and Pills float cleanly OVER the new z-index dock! */
+[data-testid="stBottomBlockContainer"], 
+[data-testid="stBottom"],
+div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
+    z-index: 1000 !important;
 }

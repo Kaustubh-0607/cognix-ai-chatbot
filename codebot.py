@@ -296,8 +296,16 @@ for msg in st.session_state.messages:
         content = msg["content"].replace("**Cognix:** ", "").replace("User: ", "")
         st.markdown(content)
 
-# User input
+# User input widget
 user_input = st.chat_input("Type your question here...")
+
+if "pill_input" not in st.session_state:
+    st.session_state.pill_input = None
+
+# Intercept pill selection and map it to user_input
+if st.session_state.pill_input:
+    user_input = st.session_state.pill_input
+    st.session_state.pill_input = None
 
 # Process new user input
 if user_input:
@@ -315,3 +323,30 @@ if user_input:
         st.markdown(clean_response)
 
     st.session_state.messages.append({"role": "assistant", "content": clean_response, "avatar": "🤖"})
+
+# ──────────────────────────────────────────────
+# Quick Options / Default Buttons (Rendered last to stay at bottom)
+# ──────────────────────────────────────────────
+def handle_pill():
+    if st.session_state.quick_option:
+        st.session_state.pill_input = st.session_state.quick_option
+        st.session_state.quick_option = None
+
+quick_options = [
+    "💼 Internship Opportunities",
+    "📂 Project Guidelines",
+    "🎓 Certificates",
+    "🪄 Application Process",
+    "🛟 Support"
+]
+
+# Hidden marker to anchor the CSS tightly to the exact next element (the pills)
+st.markdown('<div class="pill-marker"></div>', unsafe_allow_html=True)
+
+st.pills(
+    "Quick Options",
+    quick_options,
+    label_visibility="collapsed",
+    key="quick_option",
+    on_change=handle_pill
+)
