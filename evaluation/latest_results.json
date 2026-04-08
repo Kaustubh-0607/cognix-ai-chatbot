@@ -1,0 +1,22 @@
+{
+  "n_samples": 61,
+  "n_labels": 20,
+  "rule_only": {
+    "precision": 89.42,
+    "recall": 87.25,
+    "f1": 86.0,
+    "factual_err": 16.39
+  },
+  "llm_only": {
+    "precision": 93.33,
+    "recall": 93.58,
+    "f1": 92.21,
+    "factual_err": 8.2
+  },
+  "hybrid": {
+    "precision": 91.42,
+    "recall": 90.92,
+    "f1": 89.49,
+    "factual_err": 11.48
+  }
+}
