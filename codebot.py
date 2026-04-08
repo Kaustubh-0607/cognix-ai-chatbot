@@ -69,6 +69,16 @@ def save_session(session_id, title, messages):
         ''', (session_id, title, json.dumps(messages), datetime.now().isoformat()))
         conn.commit()
 
+def delete_session(session_id):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('DELETE FROM chat_sessions WHERE session_id = ?', (session_id,))
+        conn.commit()
+
+def clear_all_sessions():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('DELETE FROM chat_sessions')
+        conn.commit()
+
 # ──────────────────────────────────────────────
 # Load environment variables and configuration
 # ──────────────────────────────────────────────
@@ -191,13 +201,32 @@ with st.sidebar:
         st.caption("No recent chats found.")
     else:
         for sess in recent_sessions:
-            if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
-                st.session_state.session_id = sess['session_id']
-                st.session_state.chat_title = sess['title']
-                msgs = load_session(sess['session_id'])
-                if msgs:
-                    st.session_state.messages = msgs
-                st.rerun()
+            col1, col2 = st.columns([0.85, 0.15])
+            with col1:
+                if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
+                    st.session_state.session_id = sess['session_id']
+                    st.session_state.chat_title = sess['title']
+                    msgs = load_session(sess['session_id'])
+                    if msgs:
+                        st.session_state.messages = msgs
+                    st.rerun()
+            with col2:
+                if st.button("🗑️", key=f"del_{sess['session_id']}", help="Delete chat", use_container_width=True):
+                    delete_session(sess['session_id'])
+                    if st.session_state.session_id == sess['session_id']:
+                        st.session_state.session_id = str(uuid.uuid4())
+                        st.session_state.chat_title = "New Chat"
+                        st.session_state.messages = [{"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}]
+                        save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+                    st.rerun()
+                    
+        if st.button("🚨 Clear All History", key="clear_all", help="Delete all chat history"):
+            clear_all_sessions()
+            st.session_state.session_id = str(uuid.uuid4())
+            st.session_state.chat_title = "New Chat"
+            st.session_state.messages = [{"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}]
+            save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+            st.rerun()
                 
     st.divider()
 
