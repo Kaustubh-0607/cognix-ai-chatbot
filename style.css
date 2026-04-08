@@ -311,3 +311,46 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
     z-index: 1000 !important;
 }
+
+/* ────────────────────────────────────────────── */
+/* Recent Chats Sidebar Buttons                   */
+/* ────────────────────────────────────────────── */
+[data-testid="stSidebar"] button[kind="secondary"] {
+    background-color: transparent !important;
+    border: none !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    padding: 0.2rem 0 !important;
+    font-weight: 400 !important;
+    font-size: 15px !important;
+    height: auto !important;
+    min-height: auto !important;
+    transition: color 0.15s ease !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"]:hover {
+    background-color: transparent !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"]:focus,
+[data-testid="stSidebar"] button[kind="secondary"]:active {
+    background-color: transparent !important;
+    color: #4CAF50 !important; 
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"] p {
+    font-size: 14px !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+}
+
+[data-testid="stSidebar"] button[kind="primary"] {
+    margin-bottom: 0.5rem !important;
+    border-radius: 8px !important;
+}

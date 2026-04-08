@@ -12,10 +12,62 @@ import json
 import os
 import re
 from pathlib import Path
+import sqlite3
+import uuid
+from datetime import datetime
 
 import streamlit as st
 from dotenv import load_dotenv
 from thefuzz import fuzz, process
+
+# ──────────────────────────────────────────────
+# Database Setup
+# ──────────────────────────────────────────────
+DB_PATH = Path(__file__).parent / "chatbot.db"
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS chat_sessions (
+                session_id TEXT PRIMARY KEY,
+                title TEXT,
+                messages TEXT,
+                updated_at DATETIME
+            )
+        ''')
+        conn.commit()
+
+init_db()
+
+def get_recent_sessions(limit=5):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT session_id, title, updated_at 
+            FROM chat_sessions 
+            ORDER BY updated_at DESC LIMIT ?
+        ''', (limit,))
+        return cursor.fetchall()
+
+def load_session(session_id):
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT messages FROM chat_sessions WHERE session_id = ?', (session_id,))
+        row = cursor.fetchone()
+        return json.loads(row[0]) if row else None
+
+def save_session(session_id, title, messages):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('''
+            INSERT INTO chat_sessions (session_id, title, messages, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(session_id) DO UPDATE SET 
+                title = excluded.title,
+                messages = excluded.messages,
+                updated_at = excluded.updated_at
+        ''', (session_id, title, json.dumps(messages), datetime.now().isoformat()))
+        conn.commit()
 
 # ──────────────────────────────────────────────
 # Load environment variables and configuration
@@ -122,8 +174,33 @@ except FileNotFoundError:
 st.markdown(f"<h1>🤖 {BOT_NAME} - {settings['page_title']}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 2rem;'>{settings['subtitle']}</p>", unsafe_allow_html=True)
 
-# Sidebar: AI status indicator
+# Sidebar: Database & AI status
 with st.sidebar:
+    if st.button("➕ New Chat", type="primary", use_container_width=True):
+        st.session_state.session_id = str(uuid.uuid4())
+        st.session_state.chat_title = "New Chat"
+        st.session_state.messages = [
+            {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
+        ]
+        save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+        st.rerun()
+
+    st.markdown("### 🕒 Recent Chats")
+    recent_sessions = get_recent_sessions(5)
+    if not recent_sessions:
+        st.caption("No recent chats found.")
+    else:
+        for sess in recent_sessions:
+            if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
+                st.session_state.session_id = sess['session_id']
+                st.session_state.chat_title = sess['title']
+                msgs = load_session(sess['session_id'])
+                if msgs:
+                    st.session_state.messages = msgs
+                st.rerun()
+                
+    st.divider()
+
     st.markdown("### ⚙️ Bot Settings")
     if AI_READY:
         use_ai_toggle = st.toggle("Enable AI Mode", value=False)
@@ -288,11 +365,17 @@ def chatbot_reply(user_msg: str, use_ai: bool = False) -> str:
 # Streamlit chat UI
 # ──────────────────────────────────────────────
 
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+    st.session_state.chat_title = "New Chat"
+
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
     ]
+    # Save the initial welcome message immediately
+    save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # Display chat history
 for msg in st.session_state.messages:
@@ -316,6 +399,10 @@ if st.session_state.pill_input:
 
 # Process new user input
 if user_input:
+    # Update title based on first query
+    if st.session_state.chat_title == "New Chat":
+        st.session_state.chat_title = user_input[:20] + "..." if len(user_input) > 20 else user_input
+
     st.session_state.messages.append({"role": "user", "content": user_input, "avatar": "🧑‍💻"})
 
     with st.chat_message("user", avatar="🧑‍💻"):
@@ -330,6 +417,9 @@ if user_input:
         st.markdown(clean_response)
 
     st.session_state.messages.append({"role": "assistant", "content": clean_response, "avatar": "🤖"})
+
+    # Save to database
+    save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # ──────────────────────────────────────────────
 # Quick Options / Default Buttons (Rendered last to stay at bottom)
