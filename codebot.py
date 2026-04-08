@@ -14,6 +14,8 @@ import re
 from pathlib import Path
 import sqlite3
 import uuid
+import urllib.parse
+import requests
 from datetime import datetime
 
 import streamlit as st
@@ -32,47 +34,96 @@ def init_db():
                 session_id TEXT PRIMARY KEY,
                 title TEXT,
                 messages TEXT,
-                updated_at DATETIME
+                updated_at DATETIME,
+                user_id TEXT DEFAULT 'anonymous'
             )
         ''')
         conn.commit()
 
 init_db()
 
-def get_recent_sessions(limit=5):
+def get_recent_sessions(user_id, limit=5):
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('''
             SELECT session_id, title, updated_at 
             FROM chat_sessions 
+            WHERE user_id = ?
             ORDER BY updated_at DESC LIMIT ?
-        ''', (limit,))
+        ''', (user_id, limit,))
         return cursor.fetchall()
 
-def load_session(session_id):
+def load_session(user_id, session_id):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT messages FROM chat_sessions WHERE session_id = ?', (session_id,))
+        cursor.execute('SELECT messages FROM chat_sessions WHERE session_id = ? AND user_id = ?', (session_id, user_id))
         row = cursor.fetchone()
         return json.loads(row[0]) if row else None
 
-def save_session(session_id, title, messages):
+def save_session(user_id, session_id, title, messages):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute('''
-            INSERT INTO chat_sessions (session_id, title, messages, updated_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO chat_sessions (session_id, title, messages, updated_at, user_id)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(session_id) DO UPDATE SET 
                 title = excluded.title,
                 messages = excluded.messages,
-                updated_at = excluded.updated_at
-        ''', (session_id, title, json.dumps(messages), datetime.now().isoformat()))
+                updated_at = excluded.updated_at,
+                user_id = excluded.user_id
+        ''', (session_id, title, json.dumps(messages), datetime.now().isoformat(), user_id))
         conn.commit()
 
 # ──────────────────────────────────────────────
 # Load environment variables and configuration
 # ──────────────────────────────────────────────
 load_dotenv(Path(__file__).parent / ".env")
+
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN", "")
+AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID", "")
+AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET", "")
+AUTH0_CALLBACK_URL = os.getenv("AUTH0_CALLBACK_URL", "http://localhost:8502/")
+
+def is_auth_configured():
+    return all([AUTH0_DOMAIN, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET]) and "YOUR_" not in str(AUTH0_DOMAIN)
+
+def get_login_url():
+    params = {
+        "response_type": "code",
+        "client_id": AUTH0_CLIENT_ID,
+        "redirect_uri": AUTH0_CALLBACK_URL,
+        "scope": "openid profile email"
+    }
+    return f"https://{AUTH0_DOMAIN}/authorize?" + urllib.parse.urlencode(params)
+
+def auth0_authenticate():
+    if "user_info" in st.session_state:
+        return True
+        
+    query_params = st.query_params
+    if "code" in query_params:
+        code = query_params["code"]
+        token_url = f"https://{AUTH0_DOMAIN}/oauth/token"
+        payload = {
+            "grant_type": "authorization_code",
+            "client_id": AUTH0_CLIENT_ID,
+            "client_secret": AUTH0_CLIENT_SECRET,
+            "code": code,
+            "redirect_uri": AUTH0_CALLBACK_URL
+        }
+        try:
+            res = requests.post(token_url, data=payload)
+            if res.status_code == 200:
+                access_token = res.json().get("access_token")
+                user_res = requests.get(f"https://{AUTH0_DOMAIN}/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+                if user_res.status_code == 200:
+                    st.session_state.user_info = user_res.json()
+                    st.query_params.clear()
+                    st.rerun()
+                    return True
+        except Exception as e:
+            st.error(f"Auth error: {e}")
+    return False
 
 CONFIG_PATH = Path(__file__).parent / "intents.json"
 
@@ -174,30 +225,48 @@ except FileNotFoundError:
 st.markdown(f"<h1>🤖 {BOT_NAME} - {settings['page_title']}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 2rem;'>{settings['subtitle']}</p>", unsafe_allow_html=True)
 
+# Apply Auth logic early
+is_authenticated = False
+if is_auth_configured():
+    is_authenticated = auth0_authenticate()
+
 # Sidebar: Database & AI status
 with st.sidebar:
-    if st.button("➕ New Chat", type="primary", use_container_width=True):
-        st.session_state.session_id = str(uuid.uuid4())
-        st.session_state.chat_title = "New Chat"
-        st.session_state.messages = [
-            {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
-        ]
-        save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
-        st.rerun()
+    if is_auth_configured() and not is_authenticated:
+        st.markdown(f'<a href="{get_login_url()}" target="_self"><button style="width:100%; border-radius: 8px; padding:0.5rem; background:#4CAF50; color:white; border:none; font-weight:bold; cursor:pointer;" type="button">Log In Securely</button></a>', unsafe_allow_html=True)
+    elif is_authenticated:
+        user_info = st.session_state.user_info
+        st.markdown(f"**👤 {user_info.get('name', 'User')}**")
+        if st.button("Log Out", use_container_width=True):
+            del st.session_state.user_info
+            st.rerun()
+            
+        st.divider()
 
-    st.markdown("### 🕒 Recent Chats")
-    recent_sessions = get_recent_sessions(5)
-    if not recent_sessions:
-        st.caption("No recent chats found.")
+        if st.button("➕ New Chat", type="primary", use_container_width=True):
+            st.session_state.session_id = str(uuid.uuid4())
+            st.session_state.chat_title = "New Chat"
+            st.session_state.messages = [
+                {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
+            ]
+            save_session(user_info.get("sub"), st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+            st.rerun()
+
+        st.markdown("### 🕒 Recent Chats")
+        recent_sessions = get_recent_sessions(user_info.get("sub"), 5)
+        if not recent_sessions:
+            st.caption("No recent chats found.")
+        else:
+            for sess in recent_sessions:
+                if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
+                    st.session_state.session_id = sess['session_id']
+                    st.session_state.chat_title = sess['title']
+                    msgs = load_session(user_info.get("sub"), sess['session_id'])
+                    if msgs:
+                        st.session_state.messages = msgs
+                    st.rerun()
     else:
-        for sess in recent_sessions:
-            if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
-                st.session_state.session_id = sess['session_id']
-                st.session_state.chat_title = sess['title']
-                msgs = load_session(sess['session_id'])
-                if msgs:
-                    st.session_state.messages = msgs
-                st.rerun()
+        st.error("Auth0 is not configured in .env")
                 
     st.divider()
 
@@ -221,6 +290,13 @@ with st.sidebar:
     st.markdown(
         "**Tip:** Type `main menu` anytime to go back to the start."
     )
+
+if is_auth_configured() and not is_authenticated:
+    st.warning("🔒 Please log in from the sidebar to access your chat history.")
+    st.stop()
+elif not is_auth_configured():
+    st.warning("⚠️ Application Authentication is incomplete. Please configure Auth0 in `.env`.")
+    st.stop()
 
 
 # ──────────────────────────────────────────────
@@ -375,7 +451,7 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
     ]
     # Save the initial welcome message immediately
-    save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+    save_session(st.session_state.user_info.get("sub"), st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # Display chat history
 for msg in st.session_state.messages:
@@ -419,7 +495,7 @@ if user_input:
     st.session_state.messages.append({"role": "assistant", "content": clean_response, "avatar": "🤖"})
 
     # Save to database
-    save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+    save_session(st.session_state.user_info.get("sub"), st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # ──────────────────────────────────────────────
 # Quick Options / Default Buttons (Rendered last to stay at bottom)
