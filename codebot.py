@@ -126,7 +126,7 @@ st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin
 with st.sidebar:
     st.markdown("### ⚙️ Bot Settings")
     if AI_READY:
-        use_ai_toggle = st.toggle("Enable AI Mode", value=True)
+        use_ai_toggle = st.toggle("Enable AI Mode", value=False)
         st.caption("**Note:** Use AI mode only when necessary.  \n🌱 Save digital environment.")
         if use_ai_toggle:
             st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
