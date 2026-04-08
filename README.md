@@ -1,3 +1,14 @@
+---
+title: Cognix AI Chatbot
+emoji: 🤖
+colorFrom: indigo
+colorTo: purple
+sdk: streamlit
+sdk_version: 1.33.0
+app_file: codebot.py
+pinned: false
+---
+
 # Run : .venv\Scripts\python.exe -m streamlit run codebot.py
 
 # 🤖 Cognix — AI Internship Assistant Chatbot
