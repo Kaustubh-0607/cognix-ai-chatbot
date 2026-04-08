@@ -1,0 +1,4 @@
+run = "pip install -r requirements.txt && streamlit run codebot.py --server.address 0.0.0.0 --server.port ${PORT:-3000} --server.headless true"
+
+[deployment]
+run = ["sh", "-c", "pip install -r requirements.txt && streamlit run codebot.py --server.address 0.0.0.0 --server.port ${PORT:-3000} --server.headless true"]

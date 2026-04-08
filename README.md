@@ -67,6 +67,53 @@ Cognix uses a **hybrid approach**: rule-based matching for instant answers on kn
 
 ---
 
+## ☁️ Deploy on Replit (Complete Setup)
+
+This project is now pre-configured for Replit with:
+- `.replit` for run/deployment commands
+- `.streamlit/config.toml` for Replit-safe host/port settings
+
+### 1. Import the project
+
+1. Open Replit and click **Create Repl**.
+2. Choose **Import from GitHub** and paste your repository URL.
+3. Wait for the workspace to load.
+
+### 2. Add your secret API key
+
+1. Open **Tools → Secrets** in Replit.
+2. Add a new secret:
+   - Key: `GEMINI_API_KEY`
+   - Value: your Gemini API key
+
+Do not hardcode the key in source files.
+
+### 3. Run the app in Replit
+
+Use the Replit **Run** button. The app starts with:
+
+```bash
+pip install -r requirements.txt && streamlit run codebot.py --server.address 0.0.0.0 --server.port ${PORT:-3000} --server.headless true
+```
+
+### 4. Deploy publicly
+
+1. Click **Deploy** in Replit.
+2. Choose **Autoscale Deployment**.
+3. Confirm deploy.
+
+Replit will use the deployment run command from `.replit` and expose your app on a public URL.
+
+### 5. Verify after deploy
+
+- Open the deployed URL.
+- Send a basic message like `python internship`.
+- Enable AI mode and test a complex prompt like `Compare Python vs Java internships`.
+
+If AI mode fails, re-check the `GEMINI_API_KEY` secret.
+
+---
+
 ## 📁 Project Structure
 
 ```
