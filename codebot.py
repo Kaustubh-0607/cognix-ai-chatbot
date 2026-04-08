@@ -127,6 +127,7 @@ with st.sidebar:
     st.markdown("### ⚙️ Bot Settings")
     if AI_READY:
         use_ai_toggle = st.toggle("Enable AI Mode", value=True)
+        st.caption("**Note:** Use AI mode only when necessary.  \n🌱 Save digital environment.")
         if use_ai_toggle:
             st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
             st.caption("Complex questions are answered by Google Gemini AI.")
