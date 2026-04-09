@@ -16,6 +16,8 @@ import sqlite3
 import uuid
 import urllib.parse
 import requests
+import csv
+import io
 from datetime import datetime
 
 import streamlit as st
@@ -39,9 +41,56 @@ def init_db():
         ''')
         try:
             conn.execute("ALTER TABLE chat_sessions ADD COLUMN user_id TEXT DEFAULT 'anonymous'")
-        except sqlite3.OperationalError:
-            pass
+        except sqlite3.OperationalError: pass
+        
+        try:
+            conn.execute("ALTER TABLE chat_sessions ADD COLUMN admin_rating INTEGER")
+        except sqlite3.OperationalError: pass
+        
+        try:
+            conn.execute("ALTER TABLE chat_sessions ADD COLUMN true_intent_label TEXT")
+        except sqlite3.OperationalError: pass
+        
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                email TEXT,
+                name TEXT,
+                last_login DATETIME
+            )
+        ''')
         conn.commit()
+
+def save_user(user_id, email, name):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('''
+            INSERT INTO users (user_id, email, name, last_login)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+                email = excluded.email,
+                name = excluded.name,
+                last_login = excluded.last_login
+        ''', (user_id, email, name, datetime.now().isoformat()))
+        conn.commit()
+
+def save_admin_rating(session_id, rating, label):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute('UPDATE chat_sessions SET admin_rating = ?, true_intent_label = ? WHERE session_id = ?', 
+                     (rating, label, session_id))
+        conn.commit()
+
+def get_all_sessions_for_admin():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT c.session_id, c.title, c.messages, c.updated_at, c.admin_rating, c.true_intent_label, 
+                   u.name, u.email 
+            FROM chat_sessions c
+            LEFT JOIN users u ON c.user_id = u.user_id
+            ORDER BY c.updated_at DESC
+        ''')
+        return cursor.fetchall()
 
 init_db()
 
@@ -179,6 +228,7 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
+ADMIN_EMAILS = [email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()]
 
 def get_login_url():
     auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -214,7 +264,9 @@ def authenticate_user():
             access_token = res.json().get("access_token")
             user_res = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
             if user_res.status_code == 200:
-                st.session_state.user = user_res.json()
+                user_data = user_res.json()
+                st.session_state.user = user_data
+                save_user(user_data.get("id"), user_data.get("email"), user_data.get("name"))
                 st.rerun()
                 return True
     return False
@@ -248,6 +300,11 @@ if not is_authenticated:
     st.stop()
 
 current_user_id = st.session_state.user.get("id", "anonymous")
+current_user_email = st.session_state.user.get("email", "")
+is_admin = current_user_email in ADMIN_EMAILS
+
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "chat"
 
 # Sidebar: Database & AI status
 with st.sidebar:
@@ -257,7 +314,14 @@ with st.sidebar:
         st.rerun()
     st.divider()
 
+    if is_admin:
+        if st.button("🛠️ Admin Dashboard", type="secondary" if st.session_state.current_page == "chat" else "primary", use_container_width=True):
+            st.session_state.current_page = "admin" if st.session_state.current_page == "chat" else "chat"
+            st.rerun()
+        st.divider()
+
     if st.button("➕ New Chat", type="primary", use_container_width=True):
+        st.session_state.current_page = "chat"
         st.session_state.session_id = str(uuid.uuid4())
         st.session_state.chat_title = "New Chat"
         st.session_state.messages = [
@@ -309,11 +373,12 @@ with st.sidebar:
             st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
             st.caption("Complex questions are answered by Google Gemini AI.")
         else:
-            st.info("📋 AI Mode: **OFF** (Tokens saved!)")
-            st.caption("The bot uses rule-based keyword matching only.")
+            st.info("⚡ AI Mode: **OFF**")
+            st.caption("Operating in fast rule-based mode only.")
     else:
+        st.warning("⚠️ AI Mode unavailable (Check API Key).")
+        st.caption("Operating in rule-based mode.")
         use_ai_toggle = False
-        st.info("📋 AI Mode: **OFF** (Rule-based only)")
         if AI_ENABLED and not AI_READY:
             st.warning("Check your API key in `.env`")
         st.caption("The bot uses keyword matching for known topics.")
@@ -322,6 +387,62 @@ with st.sidebar:
         "**Tip:** Type `main menu` anytime to go back to the start."
     )
 
+# ──────────────────────────────────────────────
+# Admin Portal View
+# ──────────────────────────────────────────────
+if st.session_state.current_page == "admin" and is_admin:
+    st.markdown("## 🛠️ Admin Analytics & ML Labeling")
+    st.caption("Monitor users, evaluate AI responses, and manage classification datasets.")
+    
+    raw_sessions = get_all_sessions_for_admin()
+    if not raw_sessions:
+        st.info("No chat sessions found.")
+    else:
+        csv_buffer = io.StringIO()
+        csv_writer = csv.writer(csv_buffer)
+        csv_writer.writerow(["Session ID", "User Email", "User Name", "Title", "Updated At", "Admin Rating", "True Intent Label", "Messages (JSON)"])
+        for s in raw_sessions:
+            csv_writer.writerow([s['session_id'], s['email'], s['name'], s['title'], s['updated_at'], s['admin_rating'], s['true_intent_label'], s['messages']])
+            
+        st.download_button(
+            label="📊 Download Dataset (CSV)",
+            data=csv_buffer.getvalue(),
+            file_name=f"chatbot_analytics_{datetime.now().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            type="primary"
+        )
+        
+        st.divider()
+        st.markdown("### 📝 Session Inspector")
+        
+        session_opts = {s['session_id']: f"{s['updated_at'][:16]} | {s['email']} - {s['title'][:30]}" for s in raw_sessions}
+        selected_sid = st.selectbox("Select a session to review:", options=list(session_opts.keys()), format_func=lambda x: session_opts[x])
+        
+        if selected_sid:
+            selected_s = next(s for s in raw_sessions if s['session_id'] == selected_sid)
+            
+            with st.expander("🔍 View Chat Transcript", expanded=True):
+                messages = json.loads(selected_s['messages'])
+                for m in messages:
+                    st.markdown(f"**{m['role'].title()}**: {m['content']}")
+                    
+            st.markdown("#### Evaluate AI Response")
+            with st.form("evaluation_form"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    rating = st.slider("Rating (1 = Poor, 5 = Excellent)", 1, 5, selected_s['admin_rating'] or 3)
+                with col2:
+                    label_options = ["None (Unlabeled)", "Project Guidelines", "Internship Opportunities", "Apply", "General Inquiry", "AI Handled"]
+                    current_label = selected_s['true_intent_label'] if selected_s['true_intent_label'] in label_options else "None (Unlabeled)"
+                    label = st.selectbox("True Intent (Ground Truth)", options=label_options, index=label_options.index(current_label))
+                    
+                submitted = st.form_submit_button("Save Evaluation")
+                if submitted:
+                    save_admin_rating(selected_sid, rating, label)
+                    st.success("Rating saved successfully!")
+                    st.rerun()
+
+    st.stop() # Prevents rendering chat interface
 
 # ──────────────────────────────────────────────
 # Intent matching engine (rule-based)
