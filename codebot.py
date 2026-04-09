@@ -14,6 +14,8 @@ import re
 from pathlib import Path
 import sqlite3
 import uuid
+import urllib.parse
+import requests
 from datetime import datetime
 
 import streamlit as st
@@ -35,48 +37,53 @@ def init_db():
                 updated_at DATETIME
             )
         ''')
+        try:
+            conn.execute("ALTER TABLE chat_sessions ADD COLUMN user_id TEXT DEFAULT 'anonymous'")
+        except sqlite3.OperationalError:
+            pass
         conn.commit()
 
 init_db()
 
-def get_recent_sessions(limit=5):
+def get_recent_sessions(user_id, limit=5):
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute('''
             SELECT session_id, title, updated_at 
             FROM chat_sessions 
+            WHERE user_id = ?
             ORDER BY updated_at DESC LIMIT ?
-        ''', (limit,))
+        ''', (user_id, limit))
         return cursor.fetchall()
 
-def load_session(session_id):
+def load_session(user_id, session_id):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT messages FROM chat_sessions WHERE session_id = ?', (session_id,))
+        cursor.execute('SELECT messages FROM chat_sessions WHERE session_id = ? AND user_id = ?', (session_id, user_id))
         row = cursor.fetchone()
         return json.loads(row[0]) if row else None
 
-def save_session(session_id, title, messages):
+def save_session(user_id, session_id, title, messages):
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute('''
-            INSERT INTO chat_sessions (session_id, title, messages, updated_at)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO chat_sessions (session_id, user_id, title, messages, updated_at)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(session_id) DO UPDATE SET 
                 title = excluded.title,
                 messages = excluded.messages,
                 updated_at = excluded.updated_at
-        ''', (session_id, title, json.dumps(messages), datetime.now().isoformat()))
+        ''', (session_id, user_id, title, json.dumps(messages), datetime.now().isoformat()))
         conn.commit()
 
-def delete_session(session_id):
+def delete_session(user_id, session_id):
     with sqlite3.connect(DB_PATH) as conn:
-        conn.execute('DELETE FROM chat_sessions WHERE session_id = ?', (session_id,))
+        conn.execute('DELETE FROM chat_sessions WHERE session_id = ? AND user_id = ?', (session_id, user_id))
         conn.commit()
 
-def clear_all_sessions():
+def clear_all_sessions(user_id):
     with sqlite3.connect(DB_PATH) as conn:
-        conn.execute('DELETE FROM chat_sessions')
+        conn.execute('DELETE FROM chat_sessions WHERE user_id = ?', (user_id,))
         conn.commit()
 
 # ──────────────────────────────────────────────
@@ -167,6 +174,52 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
 
 
 # ──────────────────────────────────────────────
+# Google OAuth setup
+# ──────────────────────────────────────────────
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
+
+def get_login_url():
+    auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
+    params = {
+        "client_id": GOOGLE_CLIENT_ID,
+        "response_type": "code",
+        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "consent"
+    }
+    return f"{auth_url}?{urllib.parse.urlencode(params)}"
+
+def authenticate_user():
+    if "user" in st.session_state:
+        return True
+        
+    query_params = st.query_params
+    if "code" in query_params:
+        code = query_params["code"]
+        token_url = "https://oauth2.googleapis.com/token"
+        payload = {
+            "code": code,
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "grant_type": "authorization_code"
+        }
+        res = requests.post(token_url, data=payload)
+        st.query_params.clear()
+        
+        if res.status_code == 200:
+            access_token = res.json().get("access_token")
+            user_res = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+            if user_res.status_code == 200:
+                st.session_state.user = user_res.json()
+                st.rerun()
+                return True
+    return False
+
+# ──────────────────────────────────────────────
 # Streamlit page setup
 # ──────────────────────────────────────────────
 st.set_page_config(page_title=settings["page_title"], page_icon="🤖", layout="wide")
@@ -184,19 +237,37 @@ except FileNotFoundError:
 st.markdown(f"<h1>🤖 {BOT_NAME} - {settings['page_title']}</h1>", unsafe_allow_html=True)
 st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 2rem;'>{settings['subtitle']}</p>", unsafe_allow_html=True)
 
+if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+    st.error("Google OAuth is not configured in .env. Please configure your Client ID and Secret.")
+    st.stop()
+
+is_authenticated = authenticate_user()
+if not is_authenticated:
+    st.info("🔒 Please log in with Google to securely access your chat history.")
+    st.markdown(f'<a href="{get_login_url()}" target="_self"><button style="width:100%; padding:0.8rem; background:#4285F4; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Sign in with Google</button></a>', unsafe_allow_html=True)
+    st.stop()
+
+current_user_id = st.session_state.user.get("id", "anonymous")
+
 # Sidebar: Database & AI status
 with st.sidebar:
+    st.markdown(f"### 👋 Welcome, {st.session_state.user.get('given_name', 'User')}!")
+    if st.button("Logout", help="Sign out of your account"):
+        del st.session_state["user"]
+        st.rerun()
+    st.divider()
+
     if st.button("➕ New Chat", type="primary", use_container_width=True):
         st.session_state.session_id = str(uuid.uuid4())
         st.session_state.chat_title = "New Chat"
         st.session_state.messages = [
             {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
         ]
-        save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+        save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
         st.rerun()
 
     st.markdown("### 🕒 Recent Chats")
-    recent_sessions = get_recent_sessions(5)
+    recent_sessions = get_recent_sessions(current_user_id, 5)
     if not recent_sessions:
         st.caption("No recent chats found.")
     else:
@@ -206,26 +277,26 @@ with st.sidebar:
                 if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
                     st.session_state.session_id = sess['session_id']
                     st.session_state.chat_title = sess['title']
-                    msgs = load_session(sess['session_id'])
+                    msgs = load_session(current_user_id, sess['session_id'])
                     if msgs:
                         st.session_state.messages = msgs
                     st.rerun()
             with col2:
                 if st.button("🗑️", key=f"del_{sess['session_id']}", help="Delete chat", use_container_width=True):
-                    delete_session(sess['session_id'])
+                    delete_session(current_user_id, sess['session_id'])
                     if st.session_state.session_id == sess['session_id']:
                         st.session_state.session_id = str(uuid.uuid4())
                         st.session_state.chat_title = "New Chat"
                         st.session_state.messages = [{"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}]
-                        save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+                        save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
                     st.rerun()
                     
         if st.button("🚨 Clear All History", key="clear_all", help="Delete all chat history"):
-            clear_all_sessions()
+            clear_all_sessions(current_user_id)
             st.session_state.session_id = str(uuid.uuid4())
             st.session_state.chat_title = "New Chat"
             st.session_state.messages = [{"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}]
-            save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+            save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
             st.rerun()
                 
     st.divider()
@@ -404,15 +475,14 @@ if "messages" not in st.session_state:
         {"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}
     ]
     # Save the initial welcome message immediately
-    save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+    save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # Display chat history
 for msg in st.session_state.messages:
-    # Use 🤖 for assistant and 🧑‍💻 for user
     avatar = msg.get("avatar") or ("🤖" if msg["role"] == "assistant" else "🧑‍💻")
     with st.chat_message(msg["role"], avatar=avatar):
         # Clean up any legacy prefix for cleaner UI
-        content = msg["content"].replace("**Cognix:** ", "").replace("User: ", "")
+        content = msg["content"].replace("**Cognix:** ", "")
         st.markdown(content)
 
 # User input widget
@@ -448,7 +518,7 @@ if user_input:
     st.session_state.messages.append({"role": "assistant", "content": clean_response, "avatar": "🤖"})
 
     # Save to database
-    save_session(st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
+    save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # ──────────────────────────────────────────────
 # Quick Options / Default Buttons (Rendered last to stay at bottom)
