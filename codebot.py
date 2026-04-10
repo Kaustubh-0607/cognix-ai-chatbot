@@ -18,6 +18,7 @@ import urllib.parse
 import requests
 import csv
 import io
+import time
 from datetime import datetime
 
 import streamlit as st
@@ -207,8 +208,24 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
             config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
             history=history
         )
-        response = chat.send_message(user_msg)
-        return response.text
+        
+        # Exponential backoff retry logic for 503 (Unavailable) and 429 (Too Many Requests)
+        max_retries = 3
+        base_delay = 2 # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                response = chat.send_message(user_msg)
+                return response.text
+            except Exception as api_error:
+                error_str = str(api_error)
+                # Check if it's a rate limit or server unavailable error
+                if ("503" in error_str or "429" in error_str or "UNAVAILABLE" in error_str) and attempt < max_retries - 1:
+                    time.sleep(base_delay * (2 ** attempt)) # Waits 2s, then 4s, etc.
+                    continue
+                else:
+                    # If it's a different error or we are out of retries, throw it to the outer except block
+                    raise api_error
 
     except Exception as e:
         return (
