@@ -244,15 +244,30 @@ def ask_gemini(user_msg: str, chat_history: list) -> str:
 # ──────────────────────────────────────────────
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_REDIRECT_URI = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:8501/")
 ADMIN_EMAILS = [email.strip() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()]
+
+def get_redirect_uri():
+    """Auto-detect the correct redirect URI from the current request host.
+    Works on localhost (any port) and production (Replit, etc.) automatically.
+    """
+    try:
+        host = st.context.headers.get("Host", "")
+        if host:
+            # Use HTTPS for known production domains, HTTP for localhost
+            is_secure = not host.startswith("localhost") and not host.startswith("127.0.0.1")
+            scheme = "https" if is_secure else "http"
+            return f"{scheme}://{host}/"
+    except Exception:
+        pass
+    # Fallback to .env value if header detection fails
+    return os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:3000/")
 
 def get_login_url():
     auth_url = "https://accounts.google.com/o/oauth2/v2/auth"
     params = {
         "client_id": GOOGLE_CLIENT_ID,
         "response_type": "code",
-        "redirect_uri": GOOGLE_REDIRECT_URI,
+        "redirect_uri": get_redirect_uri(),
         "scope": "openid email profile",
         "access_type": "offline",
         "prompt": "consent"
@@ -271,7 +286,7 @@ def authenticate_user():
             "code": code,
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
-            "redirect_uri": GOOGLE_REDIRECT_URI,
+            "redirect_uri": get_redirect_uri(),
             "grant_type": "authorization_code"
         }
         res = requests.post(token_url, data=payload)

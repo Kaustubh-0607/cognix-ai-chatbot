@@ -12,7 +12,7 @@ This folder contains a reproducible intent-classification benchmark for the Cogn
 2. Ensure GEMINI_API_KEY is set in .env at project root.
 3. Run:
 
-c:/Users/ASUS/ChatBot/.venv/Scripts/python.exe evaluation/evaluate.py
+c:/Users/ASUS/ChatBot/.venv/Scripts/python.exe/evaluation/evaluate.py
 
 The script prints metrics and writes latest_results.json.
 
