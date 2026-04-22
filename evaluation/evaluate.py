@@ -187,7 +187,7 @@ def run():
     labels = sorted(set(gold))
 
     llm_pred = llm_classify_all(queries, labels)
-    rule_pred = [match_intent(q) for q in queries]
+    rule_pred = [match_intent(q) or '__fallback__' for q in queries]
 
     hybrid_pred = []
     for i, q in enumerate(queries):

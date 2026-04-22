@@ -505,458 +505,6 @@ with st.sidebar:
     )
 
 # ──────────────────────────────────────────────
-# Admin Portal — 4-Tab Analytics Dashboard
-# ──────────────────────────────────────────────
-if st.session_state.current_page == "admin" and is_admin:
-    st.markdown("## 🛠️ Admin Analytics Dashboard")
-
-    try:
-        import plotly.express as px
-        import plotly.graph_objects as go
-        import pandas as pd
-        import numpy as np
-        from sklearn.preprocessing import label_binarize
-        from sklearn.metrics import (
-            roc_curve, auc, accuracy_score,
-            precision_score, recall_score, f1_score, confusion_matrix
-        )
-        ANALYTICS_READY = True
-    except ImportError:
-        ANALYTICS_READY = False
-        st.warning("⚠️ Run: `pip install plotly scikit-learn numpy pandas` to enable analytics charts.")
-
-    tab1, tab2, tab3, tab4 = st.tabs(
-        ["📈 Live Analytics", "🎯 Live Evaluation", "🔬 Benchmark + ROC/AUC", "🗂️ Sessions"]
-    )
-
-    # ════════════════════════════════════════════════════
-    # TAB 1 — LIVE ANALYTICS
-    # ════════════════════════════════════════════════════
-    with tab1:
-        stats = get_analytics_summary()
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("👥 Total Users",       stats['total_users'])
-        c2.metric("💬 Total Messages",    stats['total_messages'])
-        c3.metric("❌ Fallback Rate",      f"{stats['fallback_rate']}%")
-        c4.metric("📊 Avg Session Length", f"{stats['avg_session_length']} msgs")
-        st.divider()
-
-        if not ANALYTICS_READY:
-            st.info("Install analytics packages to view charts.")
-        elif stats['total_messages'] == 0:
-            st.info("No messages logged yet. Start chatting to populate analytics!")
-        else:
-            col_a, col_b = st.columns(2)
-            with col_a:
-                rt = get_response_type_distribution()
-                if rt:
-                    df_rt = pd.DataFrame(rt, columns=['Type', 'Count'])
-                    cmap = {'rule': '#4CAF50', 'ai': '#2196F3', 'fallback': '#FF5722'}
-                    fig = px.pie(df_rt, values='Count', names='Type',
-                                 title='🔄 Response Type Distribution',
-                                 color='Type', color_discrete_map=cmap, hole=0.4)
-                    fig.update_traces(textposition='inside', textinfo='percent+label')
-                    st.plotly_chart(fig, use_container_width=True)
-            with col_b:
-                idata = get_intent_distribution()
-                if idata:
-                    df_i = pd.DataFrame(idata, columns=['Intent', 'Count'])
-                    fig = px.bar(df_i, x='Count', y='Intent', orientation='h',
-                                 title='🏆 Top 10 Detected Intents',
-                                 color='Count', color_continuous_scale='Viridis')
-                    fig.update_layout(yaxis={'categoryorder': 'total ascending'})
-                    st.plotly_chart(fig, use_container_width=True)
-
-            col_c, col_d = st.columns(2)
-            with col_c:
-                daily = get_daily_activity()
-                if daily:
-                    df_d = pd.DataFrame(daily, columns=['Date', 'Messages'])
-                    fig = px.line(df_d, x='Date', y='Messages',
-                                  title='📅 Daily Message Volume (Last 14 Days)',
-                                  markers=True, color_discrete_sequence=['#7C3AED'])
-                    fig.update_layout(xaxis_tickangle=-45)
-                    st.plotly_chart(fig, use_container_width=True)
-            with col_d:
-                hourly = get_hourly_activity()
-                if hourly:
-                    df_h = pd.DataFrame(hourly, columns=['Hour', 'Count'])
-                    all_h = pd.DataFrame({'Hour': range(24)})
-                    df_h = all_h.merge(df_h, on='Hour', how='left').fillna(0)
-                    fig = px.bar(df_h, x='Hour', y='Count',
-                                 title='🕐 Activity by Hour of Day',
-                                 color='Count', color_continuous_scale='Sunset')
-                    fig.update_layout(xaxis_tickmode='linear')
-                    st.plotly_chart(fig, use_container_width=True)
-
-            st.markdown("### ❓ Unrecognised Queries — Help Improve Intents")
-            fq = get_fallback_queries()
-            if fq:
-                st.dataframe(pd.DataFrame(fq, columns=['User Query', 'Frequency']),
-                             use_container_width=True, hide_index=True)
-            else:
-                st.success("🎉 No fallback queries yet!")
-
-    # ════════════════════════════════════════════════════
-    # TAB 2 — LIVE EVALUATION (from labeled sessions)
-    # ════════════════════════════════════════════════════
-    with tab2:
-        st.markdown("### 🎯 Live Model Evaluation from Labeled Sessions")
-        st.caption("Label sessions in the **Sessions** tab — metrics auto-update here.")
-
-        raw_sessions_all = get_all_sessions_for_admin()
-        labeled = [s for s in raw_sessions_all
-                   if s['true_intent_label'] and s['true_intent_label'] not in ('None (Unlabeled)', None, '')]
-        st.info(f"**{len(labeled)}** labeled sessions out of **{len(raw_sessions_all)}** total.")
-
-        if len(labeled) < 3:
-            st.warning("Label at least 3 sessions in the **Sessions** tab to generate metrics.")
-        elif ANALYTICS_READY:
-            y_true_live, y_pred_live = [], []
-            for s in labeled:
-                msgs = json.loads(s['messages'])
-                user_msgs = [m['content'] for m in msgs if m['role'] == 'user']
-                if not user_msgs:
-                    continue
-                y_true_live.append(s['true_intent_label'])
-                pred = match_intent(user_msgs[-1]) or 'fallback'
-                y_pred_live.append(pred)
-
-            if y_true_live:
-                live_labels = sorted(set(y_true_live))
-                acc  = accuracy_score(y_true_live, y_pred_live)
-                prec = precision_score(y_true_live, y_pred_live, average='macro', zero_division=0, labels=live_labels)
-                rec  = recall_score(y_true_live, y_pred_live,    average='macro', zero_division=0, labels=live_labels)
-                f1   = f1_score(y_true_live, y_pred_live,        average='macro', zero_division=0, labels=live_labels)
-
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("✅ Accuracy",  f"{acc*100:.1f}%")
-                m2.metric("🎯 Precision", f"{prec*100:.1f}%")
-                m3.metric("📡 Recall",    f"{rec*100:.1f}%")
-                m4.metric("⚖️ F1 Score",  f"{f1*100:.1f}%")
-                st.divider()
-
-                f1_per = f1_score(y_true_live, y_pred_live, average=None, zero_division=0, labels=live_labels)
-                df_f1 = pd.DataFrame({'Intent': live_labels, 'F1 Score': f1_per})
-                fig = px.bar(df_f1, x='Intent', y='F1 Score',
-                             title='F1 Score per Intent (live labeled sessions)',
-                             color='F1 Score', color_continuous_scale='RdYlGn', range_color=[0, 1])
-                fig.update_layout(xaxis_tickangle=-45)
-                st.plotly_chart(fig, use_container_width=True)
-
-                if len(live_labels) <= 12:
-                    cm = confusion_matrix(y_true_live, y_pred_live, labels=live_labels)
-                    fig_cm = px.imshow(cm, x=live_labels, y=live_labels,
-                                       title='Confusion Matrix',
-                                       labels=dict(x='Predicted', y='True', color='Count'),
-                                       color_continuous_scale='Blues', text_auto=True)
-                    st.plotly_chart(fig_cm, use_container_width=True)
-
-    # ════════════════════════════════════════════════════
-    # TAB 3 — BENCHMARK EVALUATION + ROC/AUC
-    # ════════════════════════════════════════════════════
-    with tab3:
-        st.markdown("### 🔬 Benchmark Evaluation on Known Queries")
-
-        BENCHMARK_PATH = Path(__file__).parent / "evaluation" / "benchmark_queries.json"
-        RESULTS_PATH   = Path(__file__).parent / "evaluation" / "latest_results.json"
-
-        # ── Inner helpers (defined once per render) ──────────
-        def _build_rule_score_matrix(queries, classes):
-            import numpy as _np
-            matrix = []
-            for q in queries:
-                sc = match_intent_with_scores(q)
-                matrix.append([sc.get(c, 0.0) for c in classes])
-            return _np.array(matrix)
-
-        def _one_hot(preds, classes):
-            import numpy as _np
-            m = []
-            for p in preds:
-                m.append([1.0 if c == p else 0.0 for c in classes])
-            return _np.array(m)
-
-        def _compute_roc(y_bin, prob_matrix, classes):
-            import numpy as _np
-            curves, aucs = {}, {}
-            for i, cls in enumerate(classes):
-                if y_bin[:, i].sum() == 0:
-                    continue
-                fpr, tpr, _ = roc_curve(y_bin[:, i], prob_matrix[:, i])
-                curves[cls] = (fpr.tolist(), tpr.tolist())
-                aucs[cls]   = round(float(auc(fpr, tpr)), 4)
-            # macro-average ROC
-            all_fpr  = _np.unique(_np.concatenate([curves[c][0] for c in curves]))
-            mean_tpr = _np.zeros_like(all_fpr)
-            for cls in curves:
-                mean_tpr += _np.interp(all_fpr, curves[cls][0], curves[cls][1])
-            mean_tpr /= len(curves)
-            macro_auc = round(float(_np.mean(list(aucs.values()))), 4) if aucs else 0.0
-            return curves, aucs, macro_auc, all_fpr.tolist(), mean_tpr.tolist()
-
-        def _plot_roc(curves, aucs, macro_auc, macro_fpr, macro_tpr, title):
-            colors = (px.colors.qualitative.Plotly +
-                      px.colors.qualitative.D3 +
-                      px.colors.qualitative.Safe)
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=[0,1], y=[0,1], mode='lines',
-                                     line=dict(dash='dash', color='gray', width=1),
-                                     name='Random (AUC=0.50)'))
-            for idx, (cls, (fpr, tpr)) in enumerate(curves.items()):
-                fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines',
-                                         name=f'{cls} (AUC={aucs[cls]:.2f})',
-                                         line=dict(color=colors[idx % len(colors)], width=1.5),
-                                         opacity=0.75))
-            fig.add_trace(go.Scatter(x=macro_fpr, y=macro_tpr, mode='lines',
-                                     name=f'Macro Avg (AUC={macro_auc:.3f})',
-                                     line=dict(color='black', width=3, dash='dot')))
-            fig.update_layout(
-                title=title,
-                xaxis_title='False Positive Rate', yaxis_title='True Positive Rate',
-                height=580, xaxis=dict(range=[0,1]), yaxis=dict(range=[0,1]),
-                legend=dict(font=dict(size=9), x=1.0, y=0)
-            )
-            return fig
-
-        # ── Load saved results ────────────────────────────────
-        saved = None
-        if RESULTS_PATH.exists():
-            saved = json.loads(RESULTS_PATH.read_text(encoding='utf-8'))
-
-        btn_col, info_col = st.columns([1, 3])
-        with btn_col:
-            run_btn = st.button("▶ Run Benchmark Evaluation", type="primary", use_container_width=True)
-        with info_col:
-            if saved and 'timestamp' in saved:
-                st.info(f"Last run: **{saved['timestamp'][:19]}**  |  "
-                        f"{saved.get('n_samples','?')} samples, {saved.get('n_labels','?')} classes")
-            else:
-                st.info("No results yet. Click **▶ Run Benchmark Evaluation** to start.")
-
-        if run_btn:
-            if not ANALYTICS_READY:
-                st.error("Install `plotly scikit-learn numpy pandas` first!")
-            elif not BENCHMARK_PATH.exists():
-                st.error("benchmark_queries.json not found in evaluation/")
-            else:
-                with st.spinner("Running… (may take 30–60 s if AI mode is enabled)"):
-                    dataset = json.loads(BENCHMARK_PATH.read_text(encoding='utf-8'))
-                    queries = [d['query'] for d in dataset]
-                    gold    = [d['label']  for d in dataset]
-                    classes = sorted(set(gold))
-                    y_bin   = label_binarize(gold, classes=classes)
-
-                    # Rule-only
-                    rule_preds    = [match_intent(q) or '__fallback__' for q in queries]
-                    rule_acc      = accuracy_score(gold, rule_preds)
-                    rule_prec     = precision_score(gold, rule_preds, average='macro', zero_division=0, labels=classes)
-                    rule_rec      = recall_score(   gold, rule_preds, average='macro', zero_division=0, labels=classes)
-                    rule_f1       = f1_score(       gold, rule_preds, average='macro', zero_division=0, labels=classes)
-                    rule_smat     = _build_rule_score_matrix(queries, classes)
-                    rc, ra, rmauc, rmfpr, rmtpr = _compute_roc(y_bin, rule_smat, classes)
-
-                    new_saved = {
-                        'timestamp': datetime.now().isoformat(),
-                        'n_samples': len(dataset), 'n_labels': len(classes),
-                        'classes': classes, 'gold': gold,
-                        'rule_only': {
-                            'accuracy': round(rule_acc*100, 2),
-                            'precision': round(rule_prec*100, 2),
-                            'recall': round(rule_rec*100, 2),
-                            'f1': round(rule_f1*100, 2),
-                            'predictions': rule_preds, 'macro_auc': rmauc,
-                            'roc_curves': rc, 'auc_scores': ra,
-                            'macro_fpr': rmfpr, 'macro_tpr': rmtpr,
-                        }
-                    }
-
-                    # LLM + Hybrid (only if AI is ready)
-                    if AI_READY:
-                        try:
-                            from google.genai import types as _gt
-                            import re as _re
-                            intent_desc = "\n".join(
-                                [f"- {k}: {', '.join(INTENTS[k]['keywords'][:5])}" for k in classes]
-                            )
-                            qblock = "\n".join([f"{i+1}. {q}" for i, q in enumerate(queries)])
-                            prompt = (
-                                "Classify each query into exactly one intent key from this list.\n"
-                                'Return STRICT JSON only: {"predictions": [{"id": 1, "intent": "..."}, ...]}\n\n'
-                                f"Valid intents:\n{intent_desc}\n\nQueries:\n{qblock}"
-                            )
-                            resp = gemini_client.models.generate_content(
-                                model=GEMINI_MODEL,
-                                config=_gt.GenerateContentConfig(temperature=0),
-                                contents=prompt
-                            )
-                            m = _re.search(r'\{[\s\S]*\}', resp.text or '')
-                            obj = json.loads(m.group(0))
-                            pm = {int(x['id']): x['intent'] for x in obj.get('predictions', [])}
-                            llm_preds = [pm.get(i+1, '__fallback__') for i in range(len(queries))]
-
-                            hybrid_preds = [
-                                lp if is_complex_query(q)
-                                else (rp if rp != '__fallback__' else lp)
-                                for q, rp, lp in zip(queries, rule_preds, llm_preds)
-                            ]
-
-                            for mode_name, preds in [('llm_only', llm_preds), ('hybrid', hybrid_preds)]:
-                                acc  = accuracy_score( gold, preds)
-                                prec = precision_score(gold, preds, average='macro', zero_division=0, labels=classes)
-                                rec  = recall_score(   gold, preds, average='macro', zero_division=0, labels=classes)
-                                f1v  = f1_score(       gold, preds, average='macro', zero_division=0, labels=classes)
-                                pm2  = _one_hot(preds, classes)
-                                c2, a2, mauc2, mfpr2, mtpr2 = _compute_roc(y_bin, pm2, classes)
-                                new_saved[mode_name] = {
-                                    'accuracy': round(acc*100, 2),
-                                    'precision': round(prec*100, 2),
-                                    'recall': round(rec*100, 2),
-                                    'f1': round(f1v*100, 2),
-                                    'predictions': preds, 'macro_auc': mauc2,
-                                    'roc_curves': c2, 'auc_scores': a2,
-                                    'macro_fpr': mfpr2, 'macro_tpr': mtpr2,
-                                }
-                        except Exception as llm_err:
-                            st.warning(f"LLM evaluation skipped: {llm_err}")
-
-                    RESULTS_PATH.write_text(json.dumps(new_saved, indent=2), encoding='utf-8')
-                    saved = new_saved
-                st.success("✅ Benchmark evaluation complete!")
-                st.rerun()
-
-        # ── Display results ───────────────────────────────────
-        if saved and ANALYTICS_READY:
-            st.divider()
-            modes_avail   = [m for m in ['rule_only', 'llm_only', 'hybrid'] if m in saved]
-            mode_labels_m = {'rule_only': '⚡ Rule-only', 'llm_only': '🧠 LLM-only', 'hybrid': '🔀 Hybrid'}
-
-            # Metric cards
-            st.markdown("#### 📊 Performance Metrics")
-            mcols = st.columns(len(modes_avail))
-            for col, mode in zip(mcols, modes_avail):
-                d = saved[mode]
-                with col:
-                    st.markdown(f"**{mode_labels_m[mode]}**")
-                    st.metric("Accuracy",   f"{d.get('accuracy','?')}%")
-                    st.metric("Precision",  f"{d.get('precision','?')}%")
-                    st.metric("Recall",     f"{d.get('recall','?')}%")
-                    st.metric("F1 Score",   f"{d.get('f1','?')}%")
-                    if 'macro_auc' in d:
-                        st.metric("Macro AUC", f"{d['macro_auc']:.3f}")
-
-            # Grouped bar chart
-            st.divider()
-            st.markdown("#### 📈 Metric Comparison Chart")
-            bar_rows = []
-            for mode in modes_avail:
-                d = saved[mode]
-                for metric in ['accuracy', 'precision', 'recall', 'f1']:
-                    bar_rows.append({'Mode': mode_labels_m[mode], 'Metric': metric.title(), 'Score': d.get(metric, 0)})
-            fig_bar = px.bar(
-                pd.DataFrame(bar_rows), x='Metric', y='Score', color='Mode', barmode='group',
-                title='Accuracy / Precision / Recall / F1 — All Modes',
-                color_discrete_sequence=['#4CAF50', '#2196F3', '#FF9800'],
-                range_y=[0, 100]
-            )
-            st.plotly_chart(fig_bar, use_container_width=True)
-
-            # Macro AUC comparison
-            auc_rows = [{'Mode': mode_labels_m[m], 'Macro AUC': saved[m]['macro_auc']}
-                        for m in modes_avail if 'macro_auc' in saved[m]]
-            if len(auc_rows) > 1:
-                st.divider()
-                st.markdown("#### 🏆 Macro AUC Comparison")
-                df_auc = pd.DataFrame(auc_rows)
-                fig_auc = px.bar(df_auc, x='Mode', y='Macro AUC',
-                                 title='Macro-Averaged AUC — Rule / LLM / Hybrid',
-                                 color='Mode',
-                                 color_discrete_sequence=['#4CAF50', '#2196F3', '#FF9800'],
-                                 range_y=[0.5, 1.0], text='Macro AUC')
-                fig_auc.update_traces(texttemplate='%{text:.3f}', textposition='outside')
-                st.plotly_chart(fig_auc, use_container_width=True)
-
-            # ROC Curves
-            st.divider()
-            st.markdown("#### 📉 ROC Curves (One-vs-Rest, per Intent Class)")
-            roc_mode_opts = [m for m in modes_avail if 'roc_curves' in saved.get(m, {})]
-            if roc_mode_opts:
-                sel_mode = st.selectbox(
-                    "Select mode to view ROC curves:",
-                    options=roc_mode_opts,
-                    format_func=lambda x: mode_labels_m[x]
-                )
-                md = saved[sel_mode]
-                fig_roc = _plot_roc(
-                    md['roc_curves'], md['auc_scores'], md['macro_auc'],
-                    md['macro_fpr'], md['macro_tpr'],
-                    f"ROC Curves — {mode_labels_m[sel_mode]}"
-                )
-                st.plotly_chart(fig_roc, use_container_width=True)
-
-                st.markdown("#### 🏅 AUC Per Intent Class")
-                df_auc_tbl = pd.DataFrame(
-                    [{'Intent': k, 'AUC': v} for k, v in md['auc_scores'].items()]
-                ).sort_values('AUC', ascending=False)
-                st.dataframe(df_auc_tbl, use_container_width=True, hide_index=True)
-
-    # ════════════════════════════════════════════════════
-    # TAB 4 — SESSION INSPECTOR
-    # ════════════════════════════════════════════════════
-    with tab4:
-        st.markdown("### 🗂️ Session Inspector & Manual Labeling")
-        raw_sessions = get_all_sessions_for_admin()
-        if not raw_sessions:
-            st.info("No chat sessions found.")
-        else:
-            csv_buffer = io.StringIO()
-            csv_writer = csv.writer(csv_buffer)
-            csv_writer.writerow(["Session ID", "User Email", "User Name", "Title",
-                                  "Updated At", "Admin Rating", "True Intent Label", "Messages (JSON)"])
-            for s in raw_sessions:
-                csv_writer.writerow([s['session_id'], s['email'], s['name'], s['title'],
-                                     s['updated_at'], s['admin_rating'], s['true_intent_label'], s['messages']])
-            st.download_button(
-                "📊 Download Dataset (CSV)", data=csv_buffer.getvalue(),
-                file_name=f"chatbot_analytics_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv", type="primary"
-            )
-            st.divider()
-
-            session_opts = {
-                s['session_id']: f"{s['updated_at'][:16]} | {s['email']} — {s['title'][:30]}"
-                for s in raw_sessions
-            }
-            selected_sid = st.selectbox(
-                "Select a session to review:",
-                options=list(session_opts.keys()),
-                format_func=lambda x: session_opts[x]
-            )
-            if selected_sid:
-                sel = next(s for s in raw_sessions if s['session_id'] == selected_sid)
-                with st.expander("🔍 Chat Transcript", expanded=True):
-                    for m in json.loads(sel['messages']):
-                        st.markdown(f"**{m['role'].title()}:** {m['content']}")
-                st.markdown("#### ✍️ Evaluate This Session")
-                with st.form("evaluation_form"):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        rating = st.slider("Rating (1=Poor → 5=Excellent)", 1, 5, sel['admin_rating'] or 3)
-                    with col2:
-                        base_opts = ["None (Unlabeled)", "General Inquiry", "AI Handled"]
-                        intent_opts = sorted(INTENTS.keys())
-                        label_options = list(dict.fromkeys(base_opts + intent_opts))
-                        cur_label = sel['true_intent_label'] if sel['true_intent_label'] in label_options else "None (Unlabeled)"
-                        label = st.selectbox("True Intent (Ground Truth)", label_options,
-                                             index=label_options.index(cur_label))
-                    if st.form_submit_button("💾 Save Evaluation"):
-                        save_admin_rating(selected_sid, rating, label)
-                        st.success("Evaluation saved!")
-                        st.rerun()
-
-    st.stop()  # Prevent chat UI from rendering
-
-# ──────────────────────────────────────────────
 # Intent matching engine (rule-based)
 # ──────────────────────────────────────────────
 def match_intent(user_msg: str) -> str | None:
@@ -1074,6 +622,497 @@ def is_complex_query(msg: str) -> bool:
     """Check if the message is a complex question that the AI should handle."""
     lower = msg.lower()
     return any(re.search(p, lower) for p in AI_ROUTE_PATTERNS)
+
+
+# ──────────────────────────────────────────────
+# Admin Portal — 4-Tab Analytics Dashboard
+# ──────────────────────────────────────────────
+if st.session_state.current_page == "admin" and is_admin:
+    st.markdown("## 🛠️ Admin Analytics Dashboard")
+
+    try:
+        import plotly.express as px
+        import plotly.graph_objects as go
+        import pandas as pd
+        import numpy as np
+        from sklearn.preprocessing import label_binarize
+        from sklearn.metrics import (
+            roc_curve, auc, accuracy_score,
+            precision_score, recall_score, f1_score, confusion_matrix
+        )
+        ANALYTICS_READY = True
+    except ImportError:
+        ANALYTICS_READY = False
+        st.warning("⚠️ Run: `pip install plotly scikit-learn numpy pandas` to enable analytics charts.")
+
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["📈 Live Analytics", "🎯 Live Evaluation", "🔬 Benchmark + ROC/AUC", "🗂️ Sessions"]
+    )
+
+    # ════════════════════════════════════════════════════
+    # TAB 1 — LIVE ANALYTICS
+    # ════════════════════════════════════════════════════
+    with tab1:
+        stats = get_analytics_summary()
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("👥 Total Users",       stats['total_users'])
+        c2.metric("💬 Total Messages",    stats['total_messages'])
+        c3.metric("❌ Fallback Rate",      f"{stats['fallback_rate']}%")
+        c4.metric("📊 Avg Session Length", f"{stats['avg_session_length']} msgs")
+        st.divider()
+
+        if not ANALYTICS_READY:
+            st.info("Install analytics packages to view charts.")
+        elif stats['total_messages'] == 0:
+            st.info("No messages logged yet. Start chatting to populate analytics!")
+        else:
+            col_a, col_b = st.columns(2)
+            with col_a:
+                rt = get_response_type_distribution()
+                if rt:
+                    df_rt = pd.DataFrame(rt, columns=['Type', 'Count'])
+                    cmap = {'rule': '#4CAF50', 'ai': '#2196F3', 'fallback': '#FF5722'}
+                    fig = px.pie(df_rt, values='Count', names='Type',
+                                 title='🔄 Response Type Distribution',
+                                 color='Type', color_discrete_map=cmap, hole=0.4)
+                    fig.update_traces(textposition='inside', textinfo='percent+label')
+                    st.plotly_chart(fig, use_container_width=True)
+            with col_b:
+                idata = get_intent_distribution()
+                if idata:
+                    df_i = pd.DataFrame(idata, columns=['Intent', 'Count'])
+                    fig = px.bar(df_i, x='Count', y='Intent', orientation='h',
+                                 title='🏆 Top 10 Detected Intents',
+                                 color='Count', color_continuous_scale='Viridis')
+                    fig.update_layout(yaxis={'categoryorder': 'total ascending'})
+                    st.plotly_chart(fig, use_container_width=True)
+
+            col_c, col_d = st.columns(2)
+            with col_c:
+                daily = get_daily_activity()
+                if daily:
+                    df_d = pd.DataFrame(daily, columns=['Date', 'Messages'])
+                    fig = px.line(df_d, x='Date', y='Messages',
+                                  title='📅 Daily Message Volume (Last 14 Days)',
+                                  markers=True, color_discrete_sequence=['#7C3AED'])
+                    fig.update_layout(xaxis_tickangle=-45)
+                    st.plotly_chart(fig, use_container_width=True)
+            with col_d:
+                hourly = get_hourly_activity()
+                if hourly:
+                    df_h = pd.DataFrame(hourly, columns=['Hour', 'Count'])
+                    all_h = pd.DataFrame({'Hour': range(24)})
+                    df_h = all_h.merge(df_h, on='Hour', how='left').fillna(0)
+                    fig = px.bar(df_h, x='Hour', y='Count',
+                                 title='🕐 Activity by Hour of Day',
+                                 color='Count', color_continuous_scale='Sunset')
+                    fig.update_layout(xaxis_tickmode='linear')
+                    st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown("### ❓ Unrecognised Queries — Help Improve Intents")
+            fq = get_fallback_queries()
+            if fq:
+                st.dataframe(pd.DataFrame(fq, columns=['User Query', 'Frequency']),
+                             use_container_width=True, hide_index=True)
+            else:
+                st.success("🎉 No fallback queries yet!")
+
+    # ════════════════════════════════════════════════════
+    # TAB 2 — LIVE EVALUATION (from predefined benchmark queries)
+    # ════════════════════════════════════════════════════
+    with tab2:
+        st.markdown("### 🎯 Live Evaluation — Predefined Benchmark Queries")
+        st.caption("Evaluates the rule-based engine against **benchmark_queries.json** in real-time.")
+
+        BENCH_PATH_T2 = Path(__file__).parent / "evaluation" / "benchmark_queries.json"
+        if not BENCH_PATH_T2.exists():
+            st.error("benchmark_queries.json not found in evaluation/")
+        elif not ANALYTICS_READY:
+            st.info("Install analytics packages to view charts.")
+        else:
+            bench_data = json.loads(BENCH_PATH_T2.read_text(encoding='utf-8'))
+            bm_queries = [d['query'] for d in bench_data]
+            bm_gold    = [d['label']  for d in bench_data]
+            bm_types   = [d.get('type', 'unknown') for d in bench_data]
+            bm_labels  = sorted(set(bm_gold))
+
+            # Rule-only predictions on benchmark
+            bm_preds = [match_intent(q) or '__fallback__' for q in bm_queries]
+
+            acc  = accuracy_score(bm_gold, bm_preds)
+            prec = precision_score(bm_gold, bm_preds, average='macro', zero_division=0, labels=bm_labels)
+            rec  = recall_score(bm_gold, bm_preds,    average='macro', zero_division=0, labels=bm_labels)
+            f1v  = f1_score(bm_gold, bm_preds,        average='macro', zero_division=0, labels=bm_labels)
+
+            st.info(f"**{len(bench_data)}** benchmark queries  |  **{len(bm_labels)}** intent classes")
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("✅ Accuracy",  f"{acc*100:.1f}%")
+            m2.metric("🎯 Precision", f"{prec*100:.1f}%")
+            m3.metric("📡 Recall",    f"{rec*100:.1f}%")
+            m4.metric("⚖️ F1 Score",  f"{f1v*100:.1f}%")
+            st.divider()
+
+            # ── Per-type accuracy breakdown ──
+            st.markdown("#### 📋 Accuracy by Query Type")
+            type_rows = []
+            for qtype in sorted(set(bm_types)):
+                idxs = [i for i, t in enumerate(bm_types) if t == qtype]
+                t_gold = [bm_gold[i] for i in idxs]
+                t_pred = [bm_preds[i] for i in idxs]
+                t_acc = accuracy_score(t_gold, t_pred)
+                type_rows.append({'Type': qtype.title(), 'Queries': len(idxs), 'Accuracy': f"{t_acc*100:.1f}%"})
+            st.dataframe(pd.DataFrame(type_rows), use_container_width=True, hide_index=True)
+            st.divider()
+
+            # ── F1 per intent ──
+            f1_per = f1_score(bm_gold, bm_preds, average=None, zero_division=0, labels=bm_labels)
+            df_f1 = pd.DataFrame({'Intent': bm_labels, 'F1 Score': f1_per})
+            fig = px.bar(df_f1, x='Intent', y='F1 Score',
+                         title='F1 Score per Intent (Benchmark — Rule Engine)',
+                         color='F1 Score', color_continuous_scale='RdYlGn', range_color=[0, 1])
+            fig.update_layout(xaxis_tickangle=-45)
+            st.plotly_chart(fig, use_container_width=True)
+
+            # ── Confusion matrix ──
+            cm = confusion_matrix(bm_gold, bm_preds, labels=bm_labels)
+            fig_cm = px.imshow(cm, x=bm_labels, y=bm_labels,
+                               title='Confusion Matrix (Benchmark — Rule Engine)',
+                               labels=dict(x='Predicted', y='True', color='Count'),
+                               color_continuous_scale='Blues', text_auto=True)
+            fig_cm.update_layout(height=600, xaxis_tickangle=-45)
+            st.plotly_chart(fig_cm, use_container_width=True)
+
+            # ── Misclassified queries table ──
+            st.markdown("#### ❌ Misclassified Queries")
+            misses = [{'Query': bm_queries[i], 'True': bm_gold[i], 'Predicted': bm_preds[i], 'Type': bm_types[i]}
+                      for i in range(len(bm_queries)) if bm_gold[i] != bm_preds[i]]
+            if misses:
+                st.dataframe(pd.DataFrame(misses), use_container_width=True, hide_index=True)
+            else:
+                st.success("🎉 All benchmark queries classified correctly!")
+
+    # ════════════════════════════════════════════════════
+    # TAB 3 — BENCHMARK EVALUATION + ROC/AUC
+    # ════════════════════════════════════════════════════
+    with tab3:
+        st.markdown("### 🔬 Benchmark Evaluation on Known Queries")
+
+        BENCHMARK_PATH = Path(__file__).parent / "evaluation" / "benchmark_queries.json"
+        RESULTS_PATH   = Path(__file__).parent / "evaluation" / "latest_results.json"
+
+        # ── Inner helpers (defined once per render) ──────────
+        def _build_rule_score_matrix(queries, classes):
+            import numpy as _np
+            matrix = []
+            for q in queries:
+                sc = match_intent_with_scores(q)
+                matrix.append([sc.get(c, 0.0) for c in classes])
+            return _np.array(matrix)
+
+        def _one_hot(preds, classes):
+            import numpy as _np
+            m = []
+            for p in preds:
+                m.append([1.0 if c == p else 0.0 for c in classes])
+            return _np.array(m)
+
+        def _compute_roc(y_bin, prob_matrix, classes):
+            import numpy as _np
+            curves, aucs = {}, {}
+            for i, cls in enumerate(classes):
+                if y_bin[:, i].sum() == 0:
+                    continue
+                fpr, tpr, _ = roc_curve(y_bin[:, i], prob_matrix[:, i])
+                curves[cls] = (fpr.tolist(), tpr.tolist())
+                aucs[cls]   = round(float(auc(fpr, tpr)), 4)
+            # macro-average ROC
+            all_fpr  = _np.unique(_np.concatenate([curves[c][0] for c in curves]))
+            mean_tpr = _np.zeros_like(all_fpr)
+            for cls in curves:
+                mean_tpr += _np.interp(all_fpr, curves[cls][0], curves[cls][1])
+            mean_tpr /= len(curves)
+            macro_auc = round(float(_np.mean(list(aucs.values()))), 4) if aucs else 0.0
+            return curves, aucs, macro_auc, all_fpr.tolist(), mean_tpr.tolist()
+
+        def _plot_roc(curves, aucs, macro_auc, macro_fpr, macro_tpr, title):
+            colors = (px.colors.qualitative.Plotly +
+                      px.colors.qualitative.D3 +
+                      px.colors.qualitative.Safe)
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=[0,1], y=[0,1], mode='lines',
+                                     line=dict(dash='dash', color='gray', width=1),
+                                     name='Random (AUC=0.50)'))
+            for idx, (cls, (fpr, tpr)) in enumerate(curves.items()):
+                fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines',
+                                         name=f'{cls} (AUC={aucs[cls]:.2f})',
+                                         line=dict(color=colors[idx % len(colors)], width=1.5),
+                                         opacity=0.75))
+            fig.add_trace(go.Scatter(x=macro_fpr, y=macro_tpr, mode='lines',
+                                     name=f'Macro Avg (AUC={macro_auc:.3f})',
+                                     line=dict(color='black', width=3, dash='dot')))
+            fig.update_layout(
+                title=title,
+                xaxis_title='False Positive Rate', yaxis_title='True Positive Rate',
+                height=580, xaxis=dict(range=[0,1]), yaxis=dict(range=[0,1]),
+                legend=dict(font=dict(size=9), x=1.0, y=0)
+            )
+            return fig
+
+        # ── Load saved results ────────────────────────────────
+        saved = None
+        if RESULTS_PATH.exists():
+            saved = json.loads(RESULTS_PATH.read_text(encoding='utf-8'))
+
+        btn_col, info_col = st.columns([1, 3])
+        with btn_col:
+            run_btn = st.button("▶ Run Benchmark Evaluation", type="primary", use_container_width=True)
+        with info_col:
+            if saved and 'timestamp' in saved:
+                st.info(f"Last run: **{saved['timestamp'][:19]}**  |  "
+                        f"{saved.get('n_samples','?')} samples, {saved.get('n_labels','?')} classes")
+            else:
+                st.info("No results yet. Click **▶ Run Benchmark Evaluation** to start.")
+
+        if run_btn:
+            if not ANALYTICS_READY:
+                st.error("Install `plotly scikit-learn numpy pandas` first!")
+            elif not BENCHMARK_PATH.exists():
+                st.error("benchmark_queries.json not found in evaluation/")
+            else:
+                with st.spinner("Running… (may take 30–60 s if AI mode is enabled)"):
+                    dataset = json.loads(BENCHMARK_PATH.read_text(encoding='utf-8'))
+                    queries = [d['query'] for d in dataset]
+                    gold    = [d['label']  for d in dataset]
+                    qtypes  = [d.get('type', 'unknown') for d in dataset]
+                    classes = sorted(set(gold))
+                    y_bin   = label_binarize(gold, classes=classes)
+
+                    # Rule-only
+                    rule_preds    = [match_intent(q) or '__fallback__' for q in queries]
+                    rule_acc      = accuracy_score(gold, rule_preds)
+                    rule_prec     = precision_score(gold, rule_preds, average='macro', zero_division=0, labels=classes)
+                    rule_rec      = recall_score(   gold, rule_preds, average='macro', zero_division=0, labels=classes)
+                    rule_f1       = f1_score(       gold, rule_preds, average='macro', zero_division=0, labels=classes)
+                    rule_smat     = _build_rule_score_matrix(queries, classes)
+                    rc, ra, rmauc, rmfpr, rmtpr = _compute_roc(y_bin, rule_smat, classes)
+
+                    new_saved = {
+                        'timestamp': datetime.now().isoformat(),
+                        'n_samples': len(dataset), 'n_labels': len(classes),
+                        'classes': classes, 'gold': gold, 'query_types': qtypes,
+                        'rule_only': {
+                            'accuracy': round(rule_acc*100, 2),
+                            'precision': round(rule_prec*100, 2),
+                            'recall': round(rule_rec*100, 2),
+                            'f1': round(rule_f1*100, 2),
+                            'predictions': rule_preds, 'macro_auc': rmauc,
+                            'roc_curves': rc, 'auc_scores': ra,
+                            'macro_fpr': rmfpr, 'macro_tpr': rmtpr,
+                        }
+                    }
+
+                    # LLM + Hybrid (only if AI is ready)
+                    if AI_READY:
+                        try:
+                            from google.genai import types as _gt
+                            import re as _re
+                            intent_desc = "\n".join(
+                                [f"- {k}: {', '.join(INTENTS[k]['keywords'][:5])}" for k in classes]
+                            )
+                            qblock = "\n".join([f"{i+1}. {q}" for i, q in enumerate(queries)])
+                            prompt = (
+                                "Classify each query into exactly one intent key from this list.\n"
+                                'Return STRICT JSON only: {"predictions": [{"id": 1, "intent": "..."}, ...]}\n\n'
+                                f"Valid intents:\n{intent_desc}\n\nQueries:\n{qblock}"
+                            )
+                            resp = gemini_client.models.generate_content(
+                                model=GEMINI_MODEL,
+                                config=_gt.GenerateContentConfig(temperature=0),
+                                contents=prompt
+                            )
+                            m = _re.search(r'\{[\s\S]*\}', resp.text or '')
+                            obj = json.loads(m.group(0))
+                            pm = {int(x['id']): x['intent'] for x in obj.get('predictions', [])}
+                            llm_preds = [pm.get(i+1, '__fallback__') for i in range(len(queries))]
+
+                            hybrid_preds = [
+                                lp if is_complex_query(q)
+                                else (rp if rp != '__fallback__' else lp)
+                                for q, rp, lp in zip(queries, rule_preds, llm_preds)
+                            ]
+
+                            for mode_name, preds in [('llm_only', llm_preds), ('hybrid', hybrid_preds)]:
+                                acc  = accuracy_score( gold, preds)
+                                prec = precision_score(gold, preds, average='macro', zero_division=0, labels=classes)
+                                rec  = recall_score(   gold, preds, average='macro', zero_division=0, labels=classes)
+                                f1v  = f1_score(       gold, preds, average='macro', zero_division=0, labels=classes)
+                                pm2  = _one_hot(preds, classes)
+                                c2, a2, mauc2, mfpr2, mtpr2 = _compute_roc(y_bin, pm2, classes)
+                                new_saved[mode_name] = {
+                                    'accuracy': round(acc*100, 2),
+                                    'precision': round(prec*100, 2),
+                                    'recall': round(rec*100, 2),
+                                    'f1': round(f1v*100, 2),
+                                    'predictions': preds, 'macro_auc': mauc2,
+                                    'roc_curves': c2, 'auc_scores': a2,
+                                    'macro_fpr': mfpr2, 'macro_tpr': mtpr2,
+                                }
+                        except Exception as llm_err:
+                            st.warning(f"LLM evaluation skipped: {llm_err}")
+
+                    RESULTS_PATH.write_text(json.dumps(new_saved, indent=2), encoding='utf-8')
+                    saved = new_saved
+                st.success("✅ Benchmark evaluation complete!")
+                st.rerun()
+
+        # ── Display results ───────────────────────────────────
+        if saved and ANALYTICS_READY:
+            st.divider()
+            modes_avail   = [m for m in ['rule_only', 'llm_only', 'hybrid'] if m in saved]
+            mode_labels_m = {'rule_only': '⚡ Rule-only', 'llm_only': '🧠 LLM-only', 'hybrid': '🔀 Hybrid'}
+
+            # Metric cards
+            st.markdown("#### 📊 Performance Metrics")
+            mcols = st.columns(len(modes_avail))
+            for col, mode in zip(mcols, modes_avail):
+                d = saved[mode]
+                with col:
+                    st.markdown(f"**{mode_labels_m[mode]}**")
+                    st.metric("Accuracy",   f"{d.get('accuracy','?')}%")
+                    st.metric("Precision",  f"{d.get('precision','?')}%")
+                    st.metric("Recall",     f"{d.get('recall','?')}%")
+                    st.metric("F1 Score",   f"{d.get('f1','?')}%")
+                    if 'macro_auc' in d:
+                        st.metric("Macro AUC", f"{d['macro_auc']:.3f}")
+
+            # Per-type accuracy breakdown
+            qtypes_saved = saved.get('query_types')
+            if qtypes_saved:
+                st.divider()
+                st.markdown("#### 📋 Accuracy by Query Type")
+                type_table_rows = []
+                for qtype in sorted(set(qtypes_saved)):
+                    idxs = [i for i, t in enumerate(qtypes_saved) if t == qtype]
+                    row = {'Type': qtype.title(), 'Queries': len(idxs)}
+                    for mode in modes_avail:
+                        mp = saved[mode].get('predictions', [])
+                        if mp:
+                            g = [saved['gold'][i] for i in idxs]
+                            p = [mp[i] for i in idxs]
+                            row[mode_labels_m[mode]] = f"{accuracy_score(g, p)*100:.1f}%"
+                    type_table_rows.append(row)
+                st.dataframe(pd.DataFrame(type_table_rows), use_container_width=True, hide_index=True)
+
+            # Grouped bar chart
+            st.divider()
+            st.markdown("#### 📈 Metric Comparison Chart")
+            bar_rows = []
+            for mode in modes_avail:
+                d = saved[mode]
+                for metric in ['accuracy', 'precision', 'recall', 'f1']:
+                    bar_rows.append({'Mode': mode_labels_m[mode], 'Metric': metric.title(), 'Score': d.get(metric, 0)})
+            fig_bar = px.bar(
+                pd.DataFrame(bar_rows), x='Metric', y='Score', color='Mode', barmode='group',
+                title='Accuracy / Precision / Recall / F1 — All Modes',
+                color_discrete_sequence=['#4CAF50', '#2196F3', '#FF9800'],
+                range_y=[0, 100]
+            )
+            st.plotly_chart(fig_bar, use_container_width=True)
+
+            # Macro AUC comparison
+            auc_rows = [{'Mode': mode_labels_m[m], 'Macro AUC': saved[m]['macro_auc']}
+                        for m in modes_avail if 'macro_auc' in saved[m]]
+            if len(auc_rows) > 1:
+                st.divider()
+                st.markdown("#### 🏆 Macro AUC Comparison")
+                df_auc = pd.DataFrame(auc_rows)
+                fig_auc = px.bar(df_auc, x='Mode', y='Macro AUC',
+                                 title='Macro-Averaged AUC — Rule / LLM / Hybrid',
+                                 color='Mode',
+                                 color_discrete_sequence=['#4CAF50', '#2196F3', '#FF9800'],
+                                 range_y=[0.5, 1.0], text='Macro AUC')
+                fig_auc.update_traces(texttemplate='%{text:.3f}', textposition='outside')
+                st.plotly_chart(fig_auc, use_container_width=True)
+
+            # ROC Curves
+            st.divider()
+            st.markdown("#### 📉 ROC Curves (One-vs-Rest, per Intent Class)")
+            roc_mode_opts = [m for m in modes_avail if 'roc_curves' in saved.get(m, {})]
+            if roc_mode_opts:
+                sel_mode = st.selectbox(
+                    "Select mode to view ROC curves:",
+                    options=roc_mode_opts,
+                    format_func=lambda x: mode_labels_m[x]
+                )
+                md = saved[sel_mode]
+                fig_roc = _plot_roc(
+                    md['roc_curves'], md['auc_scores'], md['macro_auc'],
+                    md['macro_fpr'], md['macro_tpr'],
+                    f"ROC Curves — {mode_labels_m[sel_mode]}"
+                )
+                st.plotly_chart(fig_roc, use_container_width=True)
+
+                st.markdown("#### 🏅 AUC Per Intent Class")
+                df_auc_tbl = pd.DataFrame(
+                    [{'Intent': k, 'AUC': v} for k, v in md['auc_scores'].items()]
+                ).sort_values('AUC', ascending=False)
+                st.dataframe(df_auc_tbl, use_container_width=True, hide_index=True)
+
+    # ════════════════════════════════════════════════════
+    # TAB 4 — SESSION INSPECTOR
+    # ════════════════════════════════════════════════════
+    with tab4:
+        st.markdown("### 🗂️ Session Inspector & Manual Labeling")
+        raw_sessions = get_all_sessions_for_admin()
+        if not raw_sessions:
+            st.info("No chat sessions found.")
+        else:
+            csv_buffer = io.StringIO()
+            csv_writer = csv.writer(csv_buffer)
+            csv_writer.writerow(["Session ID", "User Email", "User Name", "Title",
+                                  "Updated At", "Admin Rating", "True Intent Label", "Messages (JSON)"])
+            for s in raw_sessions:
+                csv_writer.writerow([s['session_id'], s['email'], s['name'], s['title'],
+                                     s['updated_at'], s['admin_rating'], s['true_intent_label'], s['messages']])
+            st.download_button(
+                "📊 Download Dataset (CSV)", data=csv_buffer.getvalue(),
+                file_name=f"chatbot_analytics_{datetime.now().strftime('%Y%m%d')}.csv",
+                mime="text/csv", type="primary"
+            )
+            st.divider()
+
+            session_opts = {
+                s['session_id']: f"{s['updated_at'][:16]} | {s['email']} — {s['title'][:30]}"
+                for s in raw_sessions
+            }
+            selected_sid = st.selectbox(
+                "Select a session to review:",
+                options=list(session_opts.keys()),
+                format_func=lambda x: session_opts[x]
+            )
+            if selected_sid:
+                sel = next(s for s in raw_sessions if s['session_id'] == selected_sid)
+                with st.expander("🔍 Chat Transcript", expanded=True):
+                    for m in json.loads(sel['messages']):
+                        st.markdown(f"**{m['role'].title()}:** {m['content']}")
+                st.markdown("#### ✍️ Evaluate This Session")
+                with st.form("evaluation_form"):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        rating = st.slider("Rating (1=Poor → 5=Excellent)", 1, 5, sel['admin_rating'] or 3)
+                    with col2:
+                        base_opts = ["None (Unlabeled)", "General Inquiry", "AI Handled"]
+                        intent_opts = sorted(INTENTS.keys())
+                        label_options = list(dict.fromkeys(base_opts + intent_opts))
+                        cur_label = sel['true_intent_label'] if sel['true_intent_label'] in label_options else "None (Unlabeled)"
+                        label = st.selectbox("True Intent (Ground Truth)", label_options,
+                                             index=label_options.index(cur_label))
+                    if st.form_submit_button("💾 Save Evaluation"):
+                        save_admin_rating(selected_sid, rating, label)
+                        st.success("Evaluation saved!")
+                        st.rerun()
+
+    st.stop()  # Prevent chat UI from rendering
 
 
 # ──────────────────────────────────────────────
