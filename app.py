@@ -403,17 +403,176 @@ try:
 except FileNotFoundError:
     pass
 
-st.markdown(f"<h1>🤖 {BOT_NAME} - {settings['page_title']}</h1>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align: center; color: rgba(255,255,255,0.7); margin-bottom: 2rem;'>{settings['subtitle']}</p>", unsafe_allow_html=True)
+# ──────────────────────────────────────────────────────────────────────
+# SIDEBAR — Rendered BEFORE auth check so it shows on the login screen
+# ──────────────────────────────────────────────────────────────────────
+with st.sidebar:
+    # ── Brand block ───────────────────────────────────────────────────
+    st.markdown(
+        """
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-icon">🤖</div>
+            <div class="sidebar-brand-text">
+                <div class="sidebar-brand-title">Cognix</div>
+                <div class="sidebar-brand-sub">AI Internship Assistant</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
 
+    # ── APP section ───────────────────────────────────────────────────
+    st.markdown("<div class='sidebar-section-label'>APP</div>", unsafe_allow_html=True)
+
+    _is_auth_sidebar = "user" in st.session_state
+
+    if _is_auth_sidebar:
+        _given = st.session_state.user.get('given_name', 'User')
+        _email = st.session_state.user.get('email', '')
+        _is_admin_sidebar = _email in ADMIN_EMAILS
+
+        # Chat nav item
+        _chat_active = st.session_state.get("current_page", "chat") == "chat"
+        st.markdown(
+            f"""<div class="sidebar-nav-item {'sidebar-nav-active' if _chat_active else ''}">
+                💬 Chat
+            </div>""",
+            unsafe_allow_html=True,
+        )
+        if st.button("💬 Open Chat", key="nav_chat", use_container_width=True):
+            st.session_state.current_page = "chat"
+            st.rerun()
+
+        # Admin nav item (admin only)
+        if _is_admin_sidebar:
+            _admin_active = st.session_state.get("current_page", "chat") == "admin"
+            if st.button(
+                "🛠️ Admin Dashboard",
+                key="nav_admin",
+                type="secondary" if not _admin_active else "primary",
+                use_container_width=True,
+            ):
+                st.session_state.current_page = "admin" if not _admin_active else "chat"
+                st.rerun()
+
+        st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div class='sidebar-user-info'>"
+            f"<span class='sidebar-user-name'>👋 {_given}</span>"
+            f"<span class='sidebar-user-email'>{_email}</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        if st.button("🚪 Logout", key="nav_logout", use_container_width=True):
+            del st.session_state["user"]
+            st.rerun()
+    else:
+        # Not logged in — show disabled app link
+        st.markdown(
+            """<div class="sidebar-nav-item sidebar-nav-active">🔒 Login</div>""",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
+
+    # ── LEGAL section ─────────────────────────────────────────────────
+    st.markdown("<div class='sidebar-section-label'>LEGAL</div>", unsafe_allow_html=True)
+    st.markdown(
+        '<a href="./Legal" target="_blank" class="sidebar-nav-item" style="text-decoration:none;">⚖️ Legal</a>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Sidebar footer ────────────────────────────────────────────────
+    st.markdown(
+        "<div class='sidebar-footer'>© 2026 Cognix AI Intelligence</div>",
+        unsafe_allow_html=True,
+    )
+
+# ──────────────────────────────────────────────────────────────────────
+# AUTHENTICATION CHECK
+# ──────────────────────────────────────────────────────────────────────
 if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
     st.error("Google OAuth is not configured in .env. Please configure your Client ID and Secret.")
     st.stop()
 
 is_authenticated = authenticate_user()
 if not is_authenticated:
-    st.info("🔒 Please log in with Google to securely access your chat history.")
-    st.markdown(f'<a href="{get_login_url()}" target="_self"><button style="width:100%; padding:0.8rem; background:#4285F4; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">Sign in with Google</button></a>', unsafe_allow_html=True)
+
+    # ── Large heading ─────────────────────────────────────────────────
+    st.markdown(
+        '<h1 class="login-main-heading">Cognix - AI Internship Assistant</h1>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<p class='login-welcome-msg'>"
+        "Hi! I'm your AI Internship Assistant. Ask me anything about internships,<br>"
+        "projects, or certification paths tailored for your career!"
+        "</p>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Authentication Required card ──────────────────────────────────
+    st.markdown(
+        """
+        <div class="auth-card">
+            <div class="auth-card-icon">🔒</div>
+            <div>
+                <div class="auth-card-title">Authentication Required</div>
+                <div class="auth-card-body">
+                    Please log in with Google to securely access your chat history and resume generation tools.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # ── Consent checkbox ──────────────────────────────────────────────
+    consent_checked = st.checkbox(
+        label="I have read and accept the [Privacy Policy](./Legal), [Terms & Conditions](./Legal), and [Disclaimer](./Legal).",
+        key="legal_consent",
+        value=st.session_state.get("legal_consent", False),
+    )
+
+    # ── Google Sign-In button ─────────────────────────────────────────
+    if consent_checked:
+        st.markdown(
+            f'<div style="text-align:center;">'
+            f'<a href="{get_login_url()}" target="_self" class="google-btn">'
+            '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" '
+            'width="18" height="18" style="margin-right:0.4rem;"/>'
+            'Sign in with Google</a></div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            '<div style="text-align:center;">'
+            '<div class="google-btn-disabled">'
+            '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" '
+            'width="18" height="18" style="margin-right:0.4rem; opacity:0.3;"/>'
+            'Sign in with Google</div></div>',
+            unsafe_allow_html=True,
+        )
+        if st.session_state.get("_login_attempted", False):
+            st.error("⚠️ Please accept the Terms & Conditions before continuing.")
+
+    st.markdown(
+        "<p style='text-align:center; font-size:0.76rem; color:#475569; margin-top:0.5rem;'>"
+        "By logging in you agree to Cognix's "
+        "<a href='./Legal' target='_blank' style='color:#64748b;'>Legal Terms</a>."
+        "</p>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Footer ────────────────────────────────────────────────────────
+    st.markdown(
+        "<div class='login-footer'>"
+        "© 2026 Cognix AI Intelligence. All rights reserved. &nbsp;•&nbsp; v4.2.0-stable"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
     st.stop()
 
 current_user_id = st.session_state.user.get("id", "anonymous")
@@ -423,21 +582,12 @@ is_admin = current_user_email in ADMIN_EMAILS
 if "current_page" not in st.session_state:
     st.session_state.current_page = "chat"
 
-# Sidebar: Database & AI status
+# ── Authenticated sidebar additions (chat history, settings) ──────────
 with st.sidebar:
-    st.markdown(f"### 👋 Welcome, {st.session_state.user.get('given_name', 'User')}!")
-    if st.button("Logout", help="Sign out of your account"):
-        del st.session_state["user"]
-        st.rerun()
-    st.divider()
+    st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-section-label'>CHATS</div>", unsafe_allow_html=True)
 
-    if is_admin:
-        if st.button("🛠️ Admin Dashboard", type="secondary" if st.session_state.current_page == "chat" else "primary", use_container_width=True):
-            st.session_state.current_page = "admin" if st.session_state.current_page == "chat" else "chat"
-            st.rerun()
-        st.divider()
-
-    if st.button("➕ New Chat", type="primary", use_container_width=True):
+    if st.button("➕ New Chat", type="primary", use_container_width=True, key="new_chat_btn"):
         st.session_state.current_page = "chat"
         st.session_state.session_id = str(uuid.uuid4())
         st.session_state.chat_title = "New Chat"
@@ -447,7 +597,6 @@ with st.sidebar:
         save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
         st.rerun()
 
-    st.markdown("### 🕒 Recent Chats")
     recent_sessions = get_recent_sessions(current_user_id, 5)
     if not recent_sessions:
         st.caption("No recent chats found.")
@@ -471,7 +620,7 @@ with st.sidebar:
                         st.session_state.messages = [{"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}]
                         save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
                     st.rerun()
-                    
+
         if st.button("🚨 Clear All History", key="clear_all", help="Delete all chat history"):
             clear_all_sessions(current_user_id)
             st.session_state.session_id = str(uuid.uuid4())
@@ -479,10 +628,9 @@ with st.sidebar:
             st.session_state.messages = [{"role": "assistant", "content": WELCOME_MSG, "avatar": "🤖"}]
             save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
             st.rerun()
-                
-    st.divider()
 
-    st.markdown("### ⚙️ Bot Settings")
+    st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
+    st.markdown("<div class='sidebar-section-label'>SETTINGS</div>", unsafe_allow_html=True)
     if AI_READY:
         use_ai_toggle = st.toggle("Enable AI Mode", value=False)
         st.caption("**Note:** Use AI mode only when necessary.  \n🌱 Save digital environment.")
@@ -499,9 +647,11 @@ with st.sidebar:
         if AI_ENABLED and not AI_READY:
             st.warning("Check your API key in `.env`")
         st.caption("The bot uses keyword matching for known topics.")
-    st.divider()
     st.markdown(
-        "**Tip:** Type `main menu` anytime to go back to the start."
+        "<div style='padding:0.4rem 0; font-size:0.8rem; color:#94a3b8;'>"
+        "💡 Type <code>main menu</code> anytime to go back to the start."
+        "</div>",
+        unsafe_allow_html=True,
     )
 
 # ──────────────────────────────────────────────
@@ -1233,4 +1383,16 @@ st.pills(
     label_visibility="collapsed",
     key="quick_option",
     on_change=handle_pill
+)
+
+# ──────────────────────────────────────────────
+# Application Footer
+# ──────────────────────────────────────────────
+st.markdown(
+    "<hr style='border-color:#1e293b; margin-top:2.5rem;'>"
+    "<p style='text-align:center; color:#64748b; font-size:0.78rem; padding-bottom:1rem;'>"
+    "© 2026 Cognix &nbsp;•&nbsp; All Rights Reserved &nbsp;•&nbsp; "
+    "<a href='/Legal' target='_blank' style='color:#38bdf8; text-decoration:none;'>⚖️ Legal Information</a>"
+    "</p>",
+    unsafe_allow_html=True,
 )

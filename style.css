@@ -1,12 +1,12 @@
-/* 
-  Cognix Premium Dark Theme 
-  Futuristic, Glassmorphism UI 
+/*
+  Cognix — Premium Dark Navy Theme
+  Matches the reference design: dark sidebar, clean main area, teal accents
 */
 
-/* Import Google Fonts */
+/* ── Google Fonts ── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Global Font Override */
+/* ── Global Reset ── */
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif !important;
 }
@@ -16,117 +16,489 @@ html, body {
     overflow-x: hidden;
 }
 
-/* Background Gradient & Main Container */
+/* ── App Background ── */
 .stApp {
-    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%);
-    color: #e8e8f0;
+    background: #0e1117 !important;
+    color: #e2e8f0;
     min-height: 100vh;
 }
 
 [data-testid="stAppViewContainer"] {
+    background: #0e1117 !important;
     min-height: 100vh;
 }
 
+/* ── Main content area ── */
 main .block-container {
-    max-width: 900px !important;
+    max-width: 720px !important;
     margin: 0 auto !important;
-    padding-top: 1.25rem !important;
+    padding-top: 2rem !important;
     padding-bottom: 11rem !important;
 }
 
-/* Sidebar styling (Glassmorphism) */
+/* ─────────────────────────────────────────────
+   SIDEBAR
+   ───────────────────────────────────────────── */
 [data-testid="stSidebar"] {
-    background: rgba(15, 15, 30, 0.6) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0f1029 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    min-width: 210px !important;
+    max-width: 240px !important;
 }
 
-/* Sidebar Text & Dividers */
-[data-testid="stSidebar"] hr {
-    border-color: rgba(255, 255, 255, 0.1) !important;
+[data-testid="stSidebar"] > div:first-child {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
-/* Header & Title adjustments */
+/* Hide the default Streamlit page nav auto-generated links */
+[data-testid="stSidebarNav"] { display: none !important; }
+
+/* ── Sidebar Brand ── */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.4rem 1rem 0.8rem 1rem;
+}
+
+.sidebar-brand-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.sidebar-brand-title {
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    line-height: 1.2 !important;
+    letter-spacing: -0.01em;
+}
+
+.sidebar-brand-sub {
+    font-size: 0.68rem !important;
+    color: #64748b !important;
+    line-height: 1.3 !important;
+    font-weight: 400 !important;
+}
+
+/* ── Sidebar Divider ── */
+.sidebar-hr {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0.4rem 0;
+}
+
+/* ── Section Labels ── */
+.sidebar-section-label {
+    font-size: 0.62rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.1em !important;
+    color: #3d4a5c !important;
+    text-transform: uppercase !important;
+    padding: 0.8rem 1rem 0.3rem 1rem !important;
+    display: block;
+}
+
+/* ── Nav Items ── */
+.sidebar-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    border-radius: 6px;
+    margin: 0 0.5rem 0.15rem 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #e2e8f0;
+}
+
+.sidebar-nav-active {
+    background: rgba(124, 58, 237, 0.15) !important;
+    color: #a855f7 !important;
+    font-weight: 500;
+}
+
+/* ── User info block ── */
+.sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 1rem;
+    gap: 0.15rem;
+}
+
+.sidebar-user-name {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #cbd5e1;
+}
+
+.sidebar-user-email {
+    font-size: 0.7rem;
+    color: #475569;
+}
+
+/* ── Legal links in sidebar ── */
+.sidebar-legal-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.15rem 0;
+}
+
+.sidebar-legal-link {
+    display: block;
+    padding: 0.4rem 1rem;
+    font-size: 0.82rem;
+    color: #64748b !important;
+    text-decoration: none !important;
+    border-radius: 6px;
+    margin: 0 0.5rem;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-legal-link:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+}
+
+/* ── Sidebar Footer ── */
+.sidebar-footer {
+    font-size: 0.68rem;
+    color: #2d3748;
+    text-align: center;
+    padding: 1.5rem 1rem 1rem 1rem;
+    margin-top: auto;
+}
+
+/* ── Sidebar Streamlit buttons ── */
+[data-testid="stSidebar"] button[kind="secondary"] {
+    background-color: transparent !important;
+    border: none !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    padding: 0.3rem 0.5rem !important;
+    font-weight: 400 !important;
+    font-size: 0.83rem !important;
+    height: auto !important;
+    min-height: auto !important;
+    transition: color 0.15s ease, background 0.15s ease !important;
+    border-radius: 6px !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"]:hover {
+    background-color: rgba(255,255,255,0.05) !important;
+    color: white !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"]:focus,
+[data-testid="stSidebar"] button[kind="secondary"]:active {
+    background-color: rgba(255,255,255,0.08) !important;
+    color: #00d4aa !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stSidebar"] button[kind="secondary"] p {
+    font-size: 0.83rem !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+}
+
+[data-testid="stSidebar"] button[kind="primary"] {
+    background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    color: white !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.4rem !important;
+    transition: opacity 0.2s ease !important;
+}
+
+[data-testid="stSidebar"] button[kind="primary"]:hover {
+    opacity: 0.88 !important;
+}
+
+/* ─────────────────────────────────────────────
+   HEADER (Top bar)
+   ───────────────────────────────────────────── */
 header {
     background: transparent !important;
 }
 
-h1 {
-    background: linear-gradient(90deg, #a855f7, #00d4aa);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 700 !important;
+#MainMenu { display: none !important; }
+footer    { display: none !important; }
+
+/* ─────────────────────────────────────────────
+   LOGIN PAGE — MAIN HEADING
+   ───────────────────────────────────────────── */
+.login-heading-wrap {
     text-align: center;
-    padding-bottom: 0.5em;
+    margin-bottom: 0.8rem;
+    margin-top: 1rem;
 }
 
-/* Chat Input Bar (Glassmorphism + Glow) */
+/* Small pill badge above heading */
+.login-heading-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 0.3rem 0.9rem;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 0.8rem;
+}
+
+/* BIG heading */
+.login-main-heading {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    background: none !important;
+    -webkit-text-fill-color: unset !important;
+    text-align: center !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Page h1 (fallback / other pages) */
+h1 {
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    color: #e2e8f0 !important;
+    text-align: center !important;
+    background: none !important;
+    -webkit-text-fill-color: unset !important;
+    margin-bottom: 0.25rem !important;
+    padding-bottom: 0 !important;
+}
+
+
+.auth-card {
+    background: #1a1f2e;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-left: 3px solid #00d4aa;
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    margin: 1.5rem 0 1.2rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+}
+
+.auth-card-icon {
+    font-size: 1.2rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.auth-card-title {
+    color: #00d4aa !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+}
+
+.auth-card-body {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+/* Google sign-in button */
+.google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 320px;
+    margin: 0.5rem auto 0 auto;
+    padding: 0.7rem 1.2rem;
+    background: #1e2435;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    text-decoration: none !important;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.google-btn:hover {
+    background: #262d40;
+    border-color: rgba(255,255,255,0.22);
+    color: #fff;
+    text-decoration: none !important;
+}
+
+.google-btn-disabled {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 320px;
+    margin: 0.5rem auto 0 auto;
+    padding: 0.7rem 1.2rem;
+    background: #1a1f2e;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 8px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: not-allowed;
+}
+
+/* Checkbox styling */
+[data-testid="stCheckbox"] {
+    margin: 0.8rem 0 !important;
+}
+
+[data-testid="stCheckbox"] label p {
+    color: #94a3b8 !important;
+    font-size: 0.85rem !important;
+}
+
+[data-testid="stCheckbox"] label a {
+    color: #00d4aa !important;
+    text-decoration: none !important;
+}
+
+[data-testid="stCheckbox"] label a:hover {
+    text-decoration: underline !important;
+}
+
+/* Consent link color override */
+.stCheckbox a {
+    color: #00d4aa !important;
+}
+
+/* ─────────────────────────────────────────────
+   LOGIN PAGE — HEADER AREA
+   ───────────────────────────────────────────── */
+.login-header {
+    text-align: center;
+    margin-bottom: 0.6rem;
+}
+
+.login-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 0.6rem;
+}
+
+.login-header-badge .badge-icon {
+    font-size: 0.9rem;
+}
+
+.login-welcome-msg {
+    color: #94a3b8;
+    font-size: 0.88rem;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 0.2rem;
+}
+
+/* ─────────────────────────────────────────────
+   LOGIN PAGE — FOOTER
+   ───────────────────────────────────────────── */
+.login-footer {
+    text-align: center;
+    color: #475569;
+    font-size: 0.76rem;
+    margin-top: 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.login-footer a {
+    color: #64748b !important;
+    text-decoration: none !important;
+}
+
+/* ─────────────────────────────────────────────
+   CHAT INTERFACE
+   ───────────────────────────────────────────── */
+
+/* Chat Input */
 [data-testid="stChatInput"] {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-[data-testid="stChatInput"] textarea {
-    color: #fff !important;
+[data-testid="stChatInput"] > div {
+    background: rgba(26, 31, 46, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 28px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+    padding: 5px 10px !important;
+}
+
+[data-testid="stChatInput"] > div div {
+    background-color: transparent !important;
+}
+
+[data-testid="stChatInput"] > div textarea,
+[data-testid="stChatInput"] > div button {
+    background-color: transparent !important;
+    pointer-events: auto !important;
+}
+
+[data-testid="stChatInput"] > div textarea {
+    color: #ffffff !important;
+    caret-color: #00d4aa !important;
 }
 
 [data-testid="stChatInput"] textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Chat Bubbles - General */
-[data-testid="stChatMessageContent"] {
-    color: #ffffff !important;
-}
-[data-testid="stChatMessageContent"] p, 
-[data-testid="stChatMessageContent"] li, 
-[data-testid="stChatMessageContent"] h1, 
-[data-testid="stChatMessageContent"] h2, 
-[data-testid="stChatMessageContent"] h3 {
-    color: rgba(255, 255, 255, 0.95) !important;
+[data-testid="stChatInput"] svg {
+    fill: #00d4aa !important;
 }
 
-[data-testid="chatAvatarIcon-user"] {
-    background-color: transparent !important;
-}
-[data-testid="chatAvatarIcon-assistant"] {
-    background-color: transparent !important;
-}
-
-/* User Message Bubble */
-[data-testid="stChatMessage"]:nth-child(even) {
-    background: linear-gradient(135deg, #6c3ce0 0%, #a855f7 100%) !important;
-    border-radius: 20px 20px 0 20px !important;
-    padding: 1rem !important;
-    margin: 0 auto 1rem auto !important;
-    max-width: 100% !important;
-    box-shadow: 0 4px 15px rgba(108, 60, 224, 0.4) !important;
-    border: none !important;
-    color: white !important;
-}
-
-/* Bot Message Bubble (Glass Card) */
-[data-testid="stChatMessage"]:nth-child(odd) {
-    background: rgba(20, 20, 40, 0.7) !important; /* Darker glass for contrast */
-    border-radius: 20px 20px 20px 0 !important;
-    padding: 1rem !important;
-    margin: 0 auto 1rem auto !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    max-width: 100% !important;
-    color: white !important;
-}
-
-/* Remove ANY black/grey/white block behind chat input recursively */
-[data-testid="stBottomBlockContainer"], 
+/* Bottom block transparent */
+[data-testid="stBottomBlockContainer"],
 [data-testid="stBottom"],
 [data-testid="stBottom"] > div,
 [data-testid="stHeader"],
@@ -141,103 +513,90 @@ div[class*="stAppBottomBlock"] {
     box-shadow: none !important;
 }
 
-/* Ensure main body area doesn't have an artificial white background at the bottom */
 .stApp > header {
     background: transparent !important;
 }
 
-/* Make the full-width outer Chat Input wrapper completely transparent */
-[data-testid="stChatInput"] {
-    background: transparent !important; 
-    background-color: transparent !important; 
+/* Bottom gradient fade */
+[data-testid="stAppViewContainer"]::after {
+    content: '' !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 180px !important;
+    background: linear-gradient(to bottom, rgba(14,17,23,0) 0%, rgba(14,17,23,0.8) 40%, rgba(14,17,23,1) 100%) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
+    mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
+}
+
+[data-testid="stBottomBlockContainer"],
+[data-testid="stBottom"],
+div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
+    z-index: 1000 !important;
+}
+
+/* ── Chat Bubbles ── */
+[data-testid="stChatMessageContent"] {
+    color: #e2e8f0 !important;
+}
+
+[data-testid="stChatMessageContent"] p,
+[data-testid="stChatMessageContent"] li,
+[data-testid="stChatMessageContent"] h1,
+[data-testid="stChatMessageContent"] h2,
+[data-testid="stChatMessageContent"] h3 {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-testid="chatAvatarIcon-user"],
+[data-testid="chatAvatarIcon-assistant"] {
+    background-color: transparent !important;
+}
+
+/* User bubble */
+[data-testid="stChatMessage"]:nth-child(even) {
+    background: linear-gradient(135deg, #6c3ce0 0%, #a855f7 100%) !important;
+    border-radius: 20px 20px 0 20px !important;
+    padding: 1rem !important;
+    margin: 0 auto 1rem auto !important;
+    box-shadow: 0 4px 15px rgba(108, 60, 224, 0.4) !important;
     border: none !important;
-    box-shadow: none !important;
+    color: white !important;
 }
 
-/* Target the actual inner Search Bar to make it a dark glass floating pill */
-[data-testid="stChatInput"] > div {
-    background: rgba(20, 20, 40, 0.9) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 30px !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
-    padding: 5px 10px !important;
-    position: relative !important;
-    pointer-events: auto !important;
+/* Bot bubble */
+[data-testid="stChatMessage"]:nth-child(odd) {
+    background: rgba(26, 31, 46, 0.85) !important;
+    border-radius: 20px 20px 20px 0 !important;
+    padding: 1rem !important;
+    margin: 0 auto 1rem auto !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white !important;
 }
 
-/* Clear ONLY the dark-grey backgrounds on all inner nested elements without breaking layout/clicks */
-[data-testid="stChatInput"] > div div {
-    background-color: transparent !important;
-}
-
-[data-testid="stChatInput"] > div textarea,
-[data-testid="stChatInput"] > div button {
-    background-color: transparent !important;
-    pointer-events: auto !important;
-}
-
-/* Style the text area inside the pill */
-[data-testid="stChatInput"] > div textarea {
-    color: #ffffff !important; /* Bright white text for dark mode */
-    caret-color: #a855f7 !important; /* Purple cursor */
-    font-weight: 400;
-}
-
-[data-testid="stChatInput"] textarea::placeholder {
-    color: rgba(255, 255, 255, 0.5) !important;
-}
-
-[data-testid="stChatInput"] svg {
-    fill: #00d4aa !important; /* Glowing cyan send button for contrast */
-}
-
-/* Alert Boxes in Sidebar */
+/* ── Alert Boxes ── */
 .stAlert {
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     border: none !important;
-    background: rgba(255, 255, 255, 0.05) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
     backdrop-filter: blur(10px);
 }
 
-/* Bot Status Indicator - Glowing Green */
-div[data-testid="stMarkdownContainer"] p:contains("AI Mode: **ON**") {
-    color: #00d4aa !important;
-    text-shadow: 0 0 10px rgba(0, 212, 170, 0.5);
-    font-weight: 600;
-}
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
-/* Hide default streamlit menu to look more professional */
-#MainMenu {display: none !important;}
-footer {display: none !important;}
-
-/* Squeeze the bottom gap so chat input sits strictly at the physical bottom */
-.stAppBottomBlock, [data-testid="stBottom"] {
-    padding-bottom: 15px !important;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-/* ────────────────────────────────────────────── */
-/* Pin Quick Options (Pills) to Bottom            */
-/* ────────────────────────────────────────────── */
-
-/* Hide the marker container entirely so it occupies no vertical space */
+/* ── Quick Option Pills ── */
 div[data-testid="stElementContainer"]:has(.pill-marker) {
     display: none !important;
     height: 0 !important;
@@ -245,10 +604,6 @@ div[data-testid="stElementContainer"]:has(.pill-marker) {
     padding: 0 !important;
 }
 
-/* 
-Target the immediate next container (the pills block) and fix it above the chat input.
-This relies ONLY on the document structure and ignores Streamlit widget IDs.
-*/
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
     position: sticky !important;
     left: auto !important;
@@ -261,10 +616,9 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
     width: 100% !important;
     padding: 0.25rem 0.5rem !important;
     background: transparent !important;
-    pointer-events: none !important; /* Lets clicks pass through the space between pills */
+    pointer-events: none !important;
 }
 
-/* Allow clicking the buttons and center them */
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] > div {
     pointer-events: auto !important;
     justify-content: center !important;
@@ -272,85 +626,16 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
     flex-wrap: wrap !important;
     gap: 0.5rem !important;
     width: 100% !important;
-    max-width: 100% !important;
 }
 
-/* Style the buttons */
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] button {
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    background: rgba(20, 20, 40, 0.9) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    background: rgba(26, 31, 46, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
 }
 
-/* ────────────────────────────────────────────── */
-/* Option A: Frosted Glass Footer Dock            */
-/* ────────────────────────────────────────────── */
-
-/* Create a universally visible fixed frosted glass dock at the bottom of the app */
-[data-testid="stAppViewContainer"]::after {
-    content: '' !important;
-    position: fixed !important;
-    bottom: 0 !important; 
-    left: 0 !important;
-    width: 100vw !important; 
-    height: 180px !important; 
-    background: linear-gradient(to bottom, rgba(10, 10, 26, 0) 0%, rgba(10, 10, 26, 0.8) 40%, rgba(10, 10, 26, 1) 100%) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    z-index: 10 !important;
-    pointer-events: none !important;
-    mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 100%);
-}
-
-/* Ensure the Chat input and Pills float cleanly OVER the new z-index dock! */
-[data-testid="stBottomBlockContainer"], 
-[data-testid="stBottom"],
-div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
-    z-index: 1000 !important;
-}
-
-/* ────────────────────────────────────────────── */
-/* Recent Chats Sidebar Buttons                   */
-/* ────────────────────────────────────────────── */
-[data-testid="stSidebar"] button[kind="secondary"] {
-    background-color: transparent !important;
-    border: none !important;
-    text-align: left !important;
-    justify-content: flex-start !important;
-    color: rgba(255, 255, 255, 0.7) !important;
-    padding: 0.2rem 0 !important;
-    font-weight: 400 !important;
-    font-size: 15px !important;
-    height: auto !important;
-    min-height: auto !important;
-    transition: color 0.15s ease !important;
-}
-
-[data-testid="stSidebar"] button[kind="secondary"]:hover {
-    background-color: transparent !important;
-    color: white !important;
-    border-color: transparent !important;
-}
-
-[data-testid="stSidebar"] button[kind="secondary"]:focus,
-[data-testid="stSidebar"] button[kind="secondary"]:active {
-    background-color: transparent !important;
-    color: #4CAF50 !important; 
-    border: none !important;
-    box-shadow: none !important;
-}
-
-[data-testid="stSidebar"] button[kind="secondary"] p {
-    font-size: 14px !important;
-    text-overflow: ellipsis !important;
-    overflow: hidden !important;
-    white-space: nowrap !important;
-}
-
-[data-testid="stSidebar"] button[kind="primary"] {
-    margin-bottom: 0.5rem !important;
-    border-radius: 8px !important;
+/* ── Bottom padding ── */
+.stAppBottomBlock, [data-testid="stBottom"] {
+    padding-bottom: 15px !important;
 }
