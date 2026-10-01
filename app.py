@@ -652,11 +652,11 @@ with st.sidebar:
             st.info("⚡ AI Mode: **OFF**")
             st.caption("Operating in fast rule-based mode only.")
     else:
-        st.warning("⚠️ AI Mode unavailable (Check API Key).")
+        st.warning("⚠️ AI Mode unavailable (NVIDIA_API_KEY is not configured).")
         st.caption("Operating in rule-based mode.")
         use_ai_toggle = False
         if AI_ENABLED and not AI_READY:
-            st.warning("Check your API key in `.env`")
+            st.warning("Set `NVIDIA_API_KEY` in `.env` locally or in your deployment environment.")
         st.caption("The bot uses keyword matching for known topics.")
     st.markdown(
         "<div style='padding:0.4rem 0; font-size:0.8rem; color:#94a3b8;'>"

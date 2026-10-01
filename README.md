@@ -74,6 +74,18 @@ Cognix uses a **hybrid approach**: rule-based matching for instant answers on kn
    python -m streamlit run codebot.py
    ```
 
+### Render deployment
+
+In the Render service, open **Environment → Environment Variables** and add:
+
+```text
+NVIDIA_API_KEY=your_nvidia_api_key
+```
+
+Then redeploy the service. Do not commit the key or put it in a tracked file. The
+optional `NVIDIA_API_BASE_URL` variable defaults to
+`https://integrate.api.nvidia.com/v1`.
+
 5. Open your browser at `http://localhost:8501` 🎉
 
 ---
