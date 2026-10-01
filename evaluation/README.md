@@ -9,7 +9,7 @@ This folder contains a reproducible intent-classification benchmark for the Cogn
 
 ## How to run
 1. Ensure dependencies are installed from requirements.txt.
-2. Ensure GEMINI_API_KEY is set in .env at project root.
+2. Ensure NVIDIA_API_KEY is set in .env at project root.
 3. Run:
 
 c:/Users/ASUS/ChatBot/.venv/Scripts/python.exe/evaluation/evaluate.py

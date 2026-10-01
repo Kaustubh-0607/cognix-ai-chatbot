@@ -13,16 +13,16 @@ pinned: false
 
 # 🤖 Cognix — AI Internship Assistant Chatbot
 
-An intelligent, AI-powered chatbot built with **Streamlit** and **Google Gemini AI** that helps students explore and apply for internship programs.
+An intelligent, AI-powered chatbot built with **Streamlit** and **NVIDIA Nemotron** that helps students explore and apply for internship programs.
 
-Cognix uses a **hybrid approach**: rule-based matching for instant answers on known topics, and **Google Gemini AI** for dynamic, conversational responses to complex queries.
+Cognix uses a **hybrid approach**: rule-based matching for instant answers on known topics, and **NVIDIA Nemotron** for dynamic, conversational responses to complex queries.
 
 ---
 
 ## ✨ Features
 
 - 🔍 **Fuzzy Intent Matching** — Handles typos, natural language, and partial phrases using [thefuzz](https://github.com/seatgeek/thefuzz)
-- 🧠 **AI-Powered Responses** — Google Gemini AI handles complex queries like comparisons, recommendations, and career advice
+- 🧠 **AI-Powered Responses** — NVIDIA Nemotron handles complex queries like comparisons, recommendations, and career advice
 - 🗂️ **15+ Internship Programs** — Web Dev, Full Stack, ML, Data Science, Gen AI, Cyber Security, and more
 - 💬 **Conversational Personality** — Tells jokes, gives career guidance, and has fun while staying helpful
 - ⚙️ **Easy Configuration** — All intents, responses, and AI settings live in a single `intents.json` file
@@ -36,7 +36,7 @@ Cognix uses a **hybrid approach**: rule-based matching for instant answers on kn
 | Technology | Purpose |
 |---|---|
 | [Streamlit](https://streamlit.io/) | Chat UI framework |
-| [Google Gemini AI](https://ai.google.dev/) | Generative AI for dynamic responses |
+| [NVIDIA Nemotron](https://build.nvidia.com/) | Generative AI for dynamic responses |
 | [thefuzz](https://github.com/seatgeek/thefuzz) | Fuzzy string matching for intent detection |
 | [python-dotenv](https://pypi.org/project/python-dotenv/) | Environment variable management |
 
@@ -47,7 +47,7 @@ Cognix uses a **hybrid approach**: rule-based matching for instant answers on kn
 ### Prerequisites
 
 - Python 3.10+
-- A free [Google Gemini API key](https://aistudio.google.com/apikey)
+- An [NVIDIA API key](https://build.nvidia.com/)
 
 ### Installation
 
@@ -66,7 +66,7 @@ Cognix uses a **hybrid approach**: rule-based matching for instant answers on kn
    
    Create a `.env` file in the project root:
    ```env
-   GEMINI_API_KEY=your_api_key_here
+   NVIDIA_API_KEY=your_api_key_here
    ```
 
 4. **Run the chatbot**
@@ -94,8 +94,8 @@ This project is now pre-configured for Replit with:
 
 1. Open **Tools → Secrets** in Replit.
 2. Add a new secret:
-   - Key: `GEMINI_API_KEY`
-   - Value: your Gemini API key
+   - Key: `NVIDIA_API_KEY`
+   - Value: your NVIDIA API key
 
 Do not hardcode the key in source files.
 
@@ -121,7 +121,7 @@ Replit will use the deployment run command from `.replit` and expose your app on
 - Send a basic message like `python internship`.
 - Enable AI mode and test a complex prompt like `Compare Python vs Java internships`.
 
-If AI mode fails, re-check the `GEMINI_API_KEY` secret.
+If AI mode fails, re-check the `NVIDIA_API_KEY` secret.
 
 ---
 
@@ -157,7 +157,7 @@ User Message
  keyword   (compare, joke,
     │       recommend...)
     ▼         ▼
- Rule-     Gemini
+ Rule-     Nemotron
  Based     AI 🧠
  ⚡ instant  dynamic
 ```
@@ -167,9 +167,9 @@ User Message
 |---|---|---|
 | `"python"` | Rule-based ⚡ | Direct keyword match |
 | `"intrenship"` | Rule-based ⚡ | Fuzzy match catches the typo |
-| `"Compare Python vs Java"` | Gemini AI 🧠 | Detected "compare" + "vs" |
-| `"Tell me a joke"` | Gemini AI 🧠 | Detected "joke" |
-| `"Which internship for beginners?"` | Gemini AI 🧠 | Detected "which" + "beginner" |
+| `"Compare Python vs Java"` | Nemotron AI 🧠 | Detected "compare" + "vs" |
+| `"Tell me a joke"` | Nemotron AI 🧠 | Detected "joke" |
+| `"Which internship for beginners?"` | Nemotron AI 🧠 | Detected "which" + "beginner" |
 
 ---
 
@@ -180,7 +180,7 @@ All settings live in `intents.json`:
 | Setting | What it does |
 |---|---|
 | `enable_ai` | Toggle AI on/off (`true` / `false`) |
-| `model_name` | Gemini model (e.g. `gemini-2.5-flash`) |
+| `model_name` | Nemotron model (e.g. `nvidia/nemotron-3-ultra-550b-a55b`) |
 | `system_prompt` | AI personality and knowledge base |
 | `fuzzy_threshold` | How strict the fuzzy matching is (0-100) |
 

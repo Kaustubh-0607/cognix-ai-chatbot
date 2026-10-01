@@ -2,7 +2,7 @@ streamlit>=1.33.0
 python-dotenv
 thefuzz
 python-Levenshtein
-google-genai
+openai
 requests
 pandas
 plotly

@@ -2,7 +2,7 @@
 Cognix — AI Internship Assistant (Streamlit).
 
 Hybrid chatbot: rule-based matching for known intents (instant),
-Google Gemini AI for complex / unknown queries (smart).
+    NVIDIA Nemotron AI for complex / unknown queries (smart).
 
 All intent data and AI settings are loaded from `intents.json`.
 API key is loaded from `.env`.
@@ -247,61 +247,73 @@ FALLBACK_MSG = settings["fallback_response"]
 BOT_NAME = settings["bot_name"]
 
 # ──────────────────────────────────────────────
-# Gemini AI setup
+# Nemotron AI setup
 # ──────────────────────────────────────────────
 AI_ENABLED = ai_settings.get("enable_ai", False)
-GEMINI_MODEL = ai_settings.get("model_name", "gemini-2.0-flash")
+NEMOTRON_MODEL = ai_settings.get("model_name", "nvidia/nemotron-3-ultra-550b-a55b")
+NVIDIA_API_BASE_URL = os.getenv(
+    "NVIDIA_API_BASE_URL", "https://integrate.api.nvidia.com/v1"
+)
 SYSTEM_PROMPT = ai_settings.get("system_prompt", "")
-
-gemini_model = None  # Will be initialized if AI is enabled
+nemotron_client = None
 
 if AI_ENABLED:
-    api_key = os.getenv("GEMINI_API_KEY", "")
-    if api_key and api_key != "PASTE_YOUR_API_KEY_HERE":
+    NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
+    AI_READY = bool(NVIDIA_API_KEY and NVIDIA_API_KEY != "PASTE_YOUR_API_KEY_HERE")
+    if AI_READY:
         try:
-            from google import genai
-            gemini_client = genai.Client(api_key=api_key)
-            AI_READY = True
+            from openai import OpenAI
+            nemotron_client = OpenAI(
+                base_url=NVIDIA_API_BASE_URL,
+                api_key=NVIDIA_API_KEY,
+            )
         except Exception as e:
             AI_READY = False
-            st.sidebar.warning(f"⚠️ Gemini AI failed to initialize: {e}")
-    else:
-        AI_READY = False
+            st.sidebar.warning(f"⚠️ Nemotron AI failed to initialize: {e}")
 else:
     AI_READY = False
 
 
-def ask_gemini(user_msg: str, chat_history: list) -> str:
+def ask_nemotron(user_msg: str, chat_history: list) -> str:
     """
-    Send the user's message + conversation history to Gemini
-    and return the AI-generated response.
+    Send the user's message and conversation history to Nemotron's
+    OpenAI-compatible API and return the generated response.
     """
     if not AI_READY:
         return FALLBACK_MSG
 
     try:
-        from google.genai import types
-        # Build conversation context from chat history
-        history = []
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         for msg in chat_history[-10:]:  # Last 10 messages for context
             role = "user" if msg["role"] == "user" else "model"
-            history.append({"role": role, "parts": [{"text": msg["content"]}]})
+            if role == "model":
+                role = "assistant"
+            messages.append({"role": role, "content": msg["content"]})
 
-        # Start a chat session with history for follow-up support
-        chat = gemini_client.chats.create(
-            model=GEMINI_MODEL, 
-            config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT),
-            history=history
-        )
-        
+        messages.append({"role": "user", "content": user_msg})
         # Exponential backoff retry logic for 503 (Unavailable) and 429 (Too Many Requests)
         max_retries = 3
         base_delay = 2 # seconds
         
         for attempt in range(max_retries):
             try:
-                response = chat.send_message(user_msg)
-                return response.text
+                completion = nemotron_client.chat.completions.create(
+                    model=NEMOTRON_MODEL,
+                    messages=messages,
+                    temperature=1,
+                    top_p=0.95,
+                    max_tokens=16384,
+                    extra_body={"chat_template_kwargs": {"enable_thinking": True}},
+                    stream=True,
+                )
+                response_parts = []
+                for chunk in completion:
+                    if not chunk.choices:
+                        continue
+                    content = chunk.choices[0].delta.content
+                    if content is not None:
+                        response_parts.append(content)
+                return "".join(response_parts)
             except Exception as api_error:
                 error_str = str(api_error)
                 # Check if it's a rate limit or server unavailable error
@@ -634,8 +646,8 @@ with st.sidebar:
         use_ai_toggle = st.toggle("Enable AI Mode", value=False)
         st.caption("**Note:** Use AI mode only when necessary.  \n🌱 Save digital environment.")
         if use_ai_toggle:
-            st.success(f"🧠 AI Mode: **ON** ({GEMINI_MODEL})")
-            st.caption("Complex questions are answered by Google Gemini AI.")
+            st.success(f"🧠 AI Mode: **ON** ({NEMOTRON_MODEL})")
+            st.caption("Complex questions are answered by NVIDIA Nemotron AI.")
         else:
             st.info("⚡ AI Mode: **OFF**")
             st.caption("Operating in fast rule-based mode only.")
@@ -1063,7 +1075,6 @@ if st.session_state.current_page == "admin" and is_admin:
                     # LLM + Hybrid (only if AI is ready)
                     if AI_READY:
                         try:
-                            from google.genai import types as _gt
                             import re as _re
                             intent_desc = "\n".join(
                                 [f"- {k}: {', '.join(INTENTS[k]['keywords'][:5])}" for k in classes]
@@ -1074,12 +1085,27 @@ if st.session_state.current_page == "admin" and is_admin:
                                 'Return STRICT JSON only: {"predictions": [{"id": 1, "intent": "..."}, ...]}\n\n'
                                 f"Valid intents:\n{intent_desc}\n\nQueries:\n{qblock}"
                             )
-                            resp = gemini_client.models.generate_content(
-                                model=GEMINI_MODEL,
-                                config=_gt.GenerateContentConfig(temperature=0),
-                                contents=prompt
+                            benchmark_response = requests.post(
+                                f"{NVIDIA_API_BASE_URL.rstrip('/')}/chat/completions",
+                                headers={
+                                    "Authorization": f"Bearer {NVIDIA_API_KEY}",
+                                    "Content-Type": "application/json",
+                                },
+                                json={
+                                    "model": NEMOTRON_MODEL,
+                                    "messages": [
+                                        {"role": "system", "content": SYSTEM_PROMPT},
+                                        {"role": "user", "content": prompt},
+                                    ],
+                                    "temperature": 0,
+                                    "max_tokens": 4096,
+                                },
+                                timeout=120,
                             )
-                            m = _re.search(r'\{[\s\S]*\}', resp.text or '')
+                            benchmark_response.raise_for_status()
+                            response_json = benchmark_response.json()
+                            response_text = response_json["choices"][0]["message"]["content"]
+                            m = _re.search(r'\{[\s\S]*\}', response_text or '')
                             obj = json.loads(m.group(0))
                             pm = {int(x['id']): x['intent'] for x in obj.get('predictions', [])}
                             llm_preds = [pm.get(i+1, '__fallback__') for i in range(len(queries))]
@@ -1281,7 +1307,7 @@ def chatbot_reply(user_msg: str, use_ai: bool = False):
         return intent_data.get("response", WELCOME_MSG), "main_menu", "rule"
 
     if use_ai and AI_READY and is_complex_query(user_msg):
-        return ask_gemini(user_msg, st.session_state.get("messages", [])), None, "ai"
+        return ask_nemotron(user_msg, st.session_state.get("messages", [])), None, "ai"
 
     intent = match_intent(user_msg)
     if intent is not None:
@@ -1291,7 +1317,7 @@ def chatbot_reply(user_msg: str, use_ai: bool = False):
         return intent_data["response"], intent, "rule"
 
     if use_ai and AI_READY:
-        return ask_gemini(user_msg, st.session_state.get("messages", [])), None, "ai"
+        return ask_nemotron(user_msg, st.session_state.get("messages", [])), None, "ai"
 
     return FALLBACK_MSG, None, "fallback"
 

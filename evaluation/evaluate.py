@@ -4,8 +4,7 @@ import re
 from pathlib import Path
 
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
+import requests
 from thefuzz import fuzz, process
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -136,12 +135,16 @@ def macro_metrics(y_true, y_pred, labels):
 
 def llm_classify_all(queries, labels):
     load_dotenv(BASE_DIR / ".env")
-    api_key = os.getenv("GEMINI_API_KEY", "")
+    api_key = os.getenv("NVIDIA_API_KEY", "")
     if not api_key:
-        raise RuntimeError("GEMINI_API_KEY not found in .env")
+        raise RuntimeError("NVIDIA_API_KEY not found in .env")
 
-    client = genai.Client(api_key=api_key)
-    model = cfg.get("ai_settings", {}).get("model_name", "gemini-2.5-flash")
+    model = cfg.get("ai_settings", {}).get(
+        "model_name", "nvidia/nemotron-3-ultra-550b-a55b"
+    )
+    api_base_url = os.getenv(
+        "NVIDIA_API_BASE_URL", "https://integrate.api.nvidia.com/v1"
+    )
 
     intent_desc = "\n".join(
         [f"- {k}: {', '.join(INTENTS[k]['keywords'][:5])}" for k in labels]
@@ -160,12 +163,15 @@ Queries:
 {qblock}
 """
 
-    resp = client.models.generate_content(
+    client = OpenAI(api_key=api_key, base_url=api_base_url)
+    resp = client.chat.completions.create(
         model=model,
-        config=types.GenerateContentConfig(temperature=0),
-        contents=prompt,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+        max_tokens=4096,
+        extra_body={"chat_template_kwargs": {"enable_thinking": True}},
     )
-    text = (resp.text or "").strip()
+    text = (resp.choices[0].message.content or "").strip()
     m = re.search(r"\{[\s\S]*\}", text)
     if not m:
         raise RuntimeError("LLM did not return parseable JSON")
