@@ -434,18 +434,24 @@ with st.sidebar:
 
         # Chat nav item
         _chat_active = st.session_state.get("current_page", "chat") == "chat"
-        _chat_class = "sidebar-nav-item sidebar-nav-active" if _chat_active else "sidebar-nav-item"
-        st.markdown(f"""<div class="{_chat_class}" style="cursor:default;">💬 Chat</div>""", unsafe_allow_html=True)
-        if st.button("💬 Chat", key="nav_chat", use_container_width=True):
+        if st.button(
+            "💬 Chat",
+            key="nav_chat",
+            type="primary" if _chat_active else "secondary",
+            use_container_width=True,
+        ):
             st.session_state.current_page = "chat"
             st.rerun()
 
         # Admin nav item (admin only)
         if _is_admin_sidebar:
             _admin_active = st.session_state.get("current_page", "chat") == "admin"
-            _admin_class = "sidebar-nav-item sidebar-nav-active" if _admin_active else "sidebar-nav-item"
-            st.markdown(f"""<div class="{_admin_class}" style="cursor:default;">🛠️ Admin Dashboard</div>""", unsafe_allow_html=True)
-            if st.button("🛠️ Admin Dashboard", key="nav_admin", use_container_width=True):
+            if st.button(
+                "🛠️ Admin Dashboard",
+                key="nav_admin",
+                type="primary" if _admin_active else "secondary",
+                use_container_width=True,
+            ):
                 st.session_state.current_page = "admin" if not _admin_active else "chat"
                 st.rerun()
 
@@ -457,7 +463,6 @@ with st.sidebar:
             f"</div>",
             unsafe_allow_html=True,
         )
-        st.markdown("""<div class="sidebar-nav-item" style="cursor:default;">🚪 Logout</div>""", unsafe_allow_html=True)
         if st.button("🚪 Logout", key="nav_logout", use_container_width=True):
             del st.session_state["user"]
             st.rerun()
