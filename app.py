@@ -259,7 +259,7 @@ nemotron_client = None
 
 if AI_ENABLED:
     NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
-    AI_READY = bool(NVIDIA_API_KEY and NVIDIA_API_KEY != "PASTE_YOUR_API_KEY_HERE")
+    AI_READY = bool(NVIDIA_API_KEY)
     if AI_READY:
         try:
             from openai import OpenAI
