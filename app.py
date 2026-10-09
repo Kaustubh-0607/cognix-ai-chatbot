@@ -374,7 +374,7 @@ def get_login_url():
 def authenticate_user():
     if "user" in st.session_state:
         return True
-        
+
     query_params = st.query_params
     if "code" in query_params:
         code = query_params["code"]
@@ -384,23 +384,39 @@ def authenticate_user():
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
             "redirect_uri": get_redirect_uri(),
-            "grant_type": "authorization_code"
+            "grant_type": "authorization_code",
         }
-        res = requests.post(token_url, data=payload)
+        try:
+            res = requests.post(token_url, data=payload, timeout=15)
+        except requests.RequestException as error:
+            st.session_state.auth_error = (
+                f"Google sign-in could not connect. Please try again. ({error})"
+            )
+            st.query_params.clear()
+            return False
         st.query_params.clear()
-        
+
         if res.status_code == 200:
             access_token = res.json().get("access_token")
-            user_res = requests.get("https://www.googleapis.com/oauth2/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+            user_res = requests.get(
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=15,
+            )
             if user_res.status_code == 200:
                 user_data = user_res.json()
                 st.session_state.user = user_data
                 save_user(user_data.get("id"), user_data.get("email"), user_data.get("name"))
                 st.rerun()
                 return True
+            st.session_state.auth_error = (
+                "Google sign-in could not retrieve your profile. Please try again."
+            )
+        else:
+            st.session_state.auth_error = (
+                "Google sign-in was not completed. Please try again."
+            )
     return False
-
-# ──────────────────────────────────────────────
 # Streamlit page setup
 # ──────────────────────────────────────────────
 st.set_page_config(page_title=settings["page_title"], page_icon="🤖", layout="wide")
@@ -478,21 +494,13 @@ with st.sidebar:
         if st.button("🚪 Logout", key="nav_logout", use_container_width=True):
             del st.session_state["user"]
             st.rerun()
-    else:
-        # Not logged in — show disabled app link
+    if _is_auth_sidebar:
+        st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='sidebar-section-label'>LEGAL</div>", unsafe_allow_html=True)
         st.markdown(
-            """<div class="sidebar-nav-item sidebar-nav-active">🔒 Login</div>""",
+            '<a href="./Legal" target="_blank" class="sidebar-nav-item" style="text-decoration:none;">⚖️ Legal</a>',
             unsafe_allow_html=True,
         )
-
-    st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
-
-    # ── LEGAL section ─────────────────────────────────────────────────
-    st.markdown("<div class='sidebar-section-label'>LEGAL</div>", unsafe_allow_html=True)
-    st.markdown(
-        '<a href="./Legal" target="_blank" class="sidebar-nav-item" style="text-decoration:none;">⚖️ Legal</a>',
-        unsafe_allow_html=True,
-    )
 
     # ── Sidebar footer ────────────────────────────────────────────────
     st.markdown(
@@ -510,43 +518,28 @@ if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
 is_authenticated = authenticate_user()
 if not is_authenticated:
 
-    # ── Large heading ─────────────────────────────────────────────────
     st.markdown(
-        '<h1 class="login-main-heading">Cognix - AI Internship Assistant</h1>',
+        '<div class="login-eyebrow">COGNIX WORKSPACE</div>'
+        '<h1 class="login-main-heading">Sign in to Cognix</h1>',
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<p class='login-welcome-msg'>"
-        "Hi! I'm your AI Internship Assistant. Ask me anything about internships,<br>"
-        "projects, or certification paths tailored for your career!"
+        "<p class='login-supporting-copy'>"
+        "Access your internship guidance, project resources, and saved conversations."
         "</p>",
         unsafe_allow_html=True,
     )
 
-    # ── Authentication Required card ──────────────────────────────────
-    st.markdown(
-        """
-        <div class="auth-card">
-            <div class="auth-card-icon">🔒</div>
-            <div>
-                <div class="auth-card-title">Authentication Required</div>
-                <div class="auth-card-body">
-                    Please log in with Google to securely access your chat history and resume generation tools.
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    # ── Consent checkbox ──────────────────────────────────────────────
     consent_checked = st.checkbox(
-        label="I have read and accept the [Privacy Policy](./Legal), [Terms & Conditions](./Legal), and [Disclaimer](./Legal).",
+        label="I agree to the [Privacy Policy](./Legal) and [Terms of Service](./Legal).",
         key="legal_consent",
         value=st.session_state.get("legal_consent", False),
     )
 
-    # ── Google Sign-In button ─────────────────────────────────────────
+    auth_error = st.session_state.pop("auth_error", None)
+    if auth_error:
+        st.error(auth_error)
+
     if consent_checked:
         st.markdown(
             f'<div style="text-align:center;">'
@@ -565,13 +558,11 @@ if not is_authenticated:
             'Sign in with Google</div></div>',
             unsafe_allow_html=True,
         )
-        if st.session_state.get("_login_attempted", False):
-            st.error("⚠️ Please accept the Terms & Conditions before continuing.")
-
     st.markdown(
-        "<p style='text-align:center; font-size:0.76rem; color:#475569; margin-top:0.5rem;'>"
-        "By logging in you agree to Cognix's "
-        "<a href='./Legal' target='_blank' style='color:#64748b;'>Legal Terms</a>."
+        "<p class='login-disclosure'>"
+        "By continuing, you acknowledge Cognix's "
+        "<a href='./Legal' target='_blank'>Privacy Policy</a> and "
+        "<a href='./Legal' target='_blank'>Terms of Service</a>."
         "</p>",
         unsafe_allow_html=True,
     )

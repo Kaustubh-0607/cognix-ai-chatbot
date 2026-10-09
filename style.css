@@ -18,32 +18,32 @@ html, body {
 
 /* ── App Background ── */
 .stApp {
-    background: #0e1117 !important;
+    background: #0b1015 !important;
     color: #e2e8f0;
     min-height: 100vh;
 }
 
 [data-testid="stAppViewContainer"] {
-    background: #0e1117 !important;
+    background: #0b1015 !important;
     min-height: 100vh;
 }
 
 /* ── Main content area ── */
 main .block-container {
-    max-width: 720px !important;
+    max-width: 475px !important;
     margin: 0 auto !important;
-    padding-top: 2rem !important;
-    padding-bottom: 11rem !important;
+    padding-top: clamp(7rem, 24vh, 13rem) !important;
+    padding-bottom: 3rem !important;
 }
 
 /* ─────────────────────────────────────────────
    SIDEBAR
    ───────────────────────────────────────────── */
 [data-testid="stSidebar"] {
-    background: #0f1029 !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-    min-width: 210px !important;
-    max-width: 240px !important;
+    background: #10161c !important;
+    border-right: 1px solid #27313a !important;
+    min-width: 266px !important;
+    max-width: 266px !important;
 }
 
 [data-testid="stSidebar"] > div:first-child {
@@ -60,20 +60,21 @@ main .block-container {
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    padding: 1.4rem 1rem 0.8rem 1rem;
+    padding: 1.8rem 1.5rem 0.8rem 1.5rem;
 }
 
 .sidebar-brand-icon {
     width: 40px;
     height: 40px;
     min-width: 40px;
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    border-radius: 10px;
+    background: #151d24;
+    border: 1px solid #30404a;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
-    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    box-shadow: none;
 }
 
 .sidebar-brand-text {
@@ -83,7 +84,7 @@ main .block-container {
 }
 
 .sidebar-brand-title {
-    font-size: 1.15rem !important;
+    font-size: 1.05rem !important;
     font-weight: 700 !important;
     color: #ffffff !important;
     line-height: 1.2 !important;
@@ -91,8 +92,8 @@ main .block-container {
 }
 
 .sidebar-brand-sub {
-    font-size: 0.68rem !important;
-    color: #64748b !important;
+    font-size: 0.67rem !important;
+    color: #7f8d9d !important;
     line-height: 1.3 !important;
     font-weight: 400 !important;
 }
@@ -189,7 +190,7 @@ main .block-container {
     font-size: 0.68rem;
     color: #2d3748;
     text-align: center;
-    padding: 1.5rem 1rem 1rem 1rem;
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
     margin-top: auto;
 }
 
@@ -278,12 +279,12 @@ footer    { display: none !important; }
 
 /* BIG heading */
 .login-main-heading {
-    font-size: 2rem !important;
+    font-size: 1.9rem !important;
     font-weight: 700 !important;
     color: #ffffff !important;
     background: none !important;
     -webkit-text-fill-color: unset !important;
-    text-align: center !important;
+    text-align: left !important;
     line-height: 1.2 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -302,35 +303,19 @@ h1 {
 }
 
 
-.auth-card {
-    background: #1a1f2e;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-left: 3px solid #00d4aa;
-    border-radius: 10px;
-    padding: 1.1rem 1.3rem;
-    margin: 1.5rem 0 1.2rem 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-}
-
-.auth-card-icon {
-    font-size: 1.2rem;
-    margin-top: 0.1rem;
-    flex-shrink: 0;
-}
-
-.auth-card-title {
-    color: #00d4aa !important;
+.login-eyebrow {
+    color: #00bfa6;
+    font-size: 0.68rem;
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.2rem;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.7rem;
 }
 
-.auth-card-body {
-    color: #94a3b8;
-    font-size: 0.85rem;
-    line-height: 1.5;
+.login-supporting-copy {
+    color: #96a5ba;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin: 0.65rem 0 1.6rem;
 }
 
 /* Google sign-in button */
@@ -340,13 +325,13 @@ h1 {
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    max-width: 320px;
-    margin: 0.5rem auto 0 auto;
+    max-width: none;
+    margin: 0.5rem auto 0;
     padding: 0.7rem 1.2rem;
-    background: #1e2435;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 8px;
-    color: #e2e8f0;
+    background: #f7fafc;
+    border: 1px solid #f7fafc;
+    border-radius: 6px;
+    color: #11161b;
     font-weight: 600;
     font-size: 0.88rem;
     cursor: pointer;
@@ -355,9 +340,9 @@ h1 {
 }
 
 .google-btn:hover {
-    background: #262d40;
-    border-color: rgba(255,255,255,0.22);
-    color: #fff;
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #11161b;
     text-decoration: none !important;
 }
 
@@ -367,13 +352,13 @@ h1 {
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    max-width: 320px;
+    max-width: none;
     margin: 0.5rem auto 0 auto;
     padding: 0.7rem 1.2rem;
-    background: #1a1f2e;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 8px;
-    color: #475569;
+    background: #f7fafc;
+    border: 1px solid #f7fafc;
+    border-radius: 6px;
+    color: #7f8a99;
     font-weight: 600;
     font-size: 0.88rem;
     cursor: not-allowed;
@@ -386,7 +371,7 @@ h1 {
 
 [data-testid="stCheckbox"] label p {
     color: #94a3b8 !important;
-    font-size: 0.85rem !important;
+    font-size: 0.8rem !important;
 }
 
 [data-testid="stCheckbox"] label a {
@@ -443,9 +428,45 @@ h1 {
     text-align: center;
     color: #475569;
     font-size: 0.76rem;
-    margin-top: 2.5rem;
+    margin-top: 1.7rem;
     padding-top: 1rem;
     border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.login-disclosure {
+    color: #7f8a99;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    text-align: center;
+    border-top: 1px solid #27313a;
+    margin-top: 1.1rem;
+    padding-top: 1.1rem;
+}
+
+.login-disclosure a {
+    color: #96a5ba !important;
+}
+
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] {
+        min-width: 100% !important;
+        max-width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid #27313a !important;
+    }
+
+    main .block-container {
+        max-width: none !important;
+        padding: 2.5rem 1.25rem 2rem !important;
+    }
+
+    .login-main-heading {
+        font-size: 1.65rem !important;
+    }
+
+    .login-footer {
+        margin-top: 1.5rem;
+    }
 }
 
 .login-footer a {
