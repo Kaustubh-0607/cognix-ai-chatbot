@@ -36,14 +36,38 @@ main .block-container {
     padding-bottom: 3rem !important;
 }
 
+body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh;
+    margin: 0 !important;
+    padding: 2rem 1.5rem !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 100%;
+    max-width: 474px;
+    height: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* ─────────────────────────────────────────────
    SIDEBAR
    ───────────────────────────────────────────── */
 [data-testid="stSidebar"] {
     background: #10161c !important;
     border-right: 1px solid #27313a !important;
+    width: 266px !important;
     min-width: 266px !important;
     max-width: 266px !important;
+    min-height: 100dvh !important;
 }
 
 [data-testid="stSidebar"] > div:first-child {
@@ -60,7 +84,7 @@ main .block-container {
     display: flex;
     align-items: center;
     gap: 0.7rem;
-    padding: 1.8rem 1.5rem 0.8rem 1.5rem;
+    padding: 2.5rem 2.1rem 0.8rem 2.1rem;
 }
 
 .sidebar-brand-icon {
@@ -73,8 +97,18 @@ main .block-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    color: #0faf9a;
     box-shadow: none;
+}
+
+.sidebar-brand-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.2;
 }
 
 .sidebar-brand-text {
@@ -189,8 +223,36 @@ main .block-container {
 .sidebar-footer {
     font-size: 0.68rem;
     color: #2d3748;
-    text-align: center;
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    text-align: left;
+    padding: 1.5rem 2.1rem 2.25rem 2.1rem;
+    margin-top: auto;
+}
+
+body:has(.login-eyebrow) [data-testid="stSidebar"] > div:first-child {
+    min-height: 100dvh;
+}
+
+body:has(.login-eyebrow) [data-testid="stSidebarHeader"] {
+    display: none;
+}
+
+body:has(.login-eyebrow) [data-testid="stSidebarUserContent"] {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding-bottom: 0;
+}
+
+body:has(.login-eyebrow) [data-testid="stSidebarUserContent"] .stVerticalBlock {
+    min-height: 100dvh;
+}
+
+body:has(.login-eyebrow) [data-testid="stSidebarUserContent"] .stVerticalBlock > .stElementContainer:last-child {
+    margin-top: auto;
+}
+
+body:has(.login-eyebrow) .sidebar-footer {
     margin-top: auto;
 }
 
@@ -279,7 +341,7 @@ footer    { display: none !important; }
 
 /* BIG heading */
 .login-main-heading {
-    font-size: 1.9rem !important;
+    font-size: 2.25rem !important;
     font-weight: 700 !important;
     color: #ffffff !important;
     background: none !important;
@@ -304,18 +366,18 @@ h1 {
 
 
 .login-eyebrow {
-    color: #00bfa6;
-    font-size: 0.68rem;
+    color: #0faf9a;
+    font-size: 0.69rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
-    margin: 0 0 0.7rem;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.75rem;
 }
 
 .login-supporting-copy {
-    color: #96a5ba;
-    font-size: 0.88rem;
-    line-height: 1.55;
-    margin: 0.65rem 0 1.6rem;
+    color: #94a3b8;
+    font-size: 0.94rem;
+    line-height: 1.6;
+    margin: 0.65rem 0 1.5rem;
 }
 
 /* Google sign-in button */
@@ -327,13 +389,14 @@ h1 {
     width: 100%;
     max-width: none;
     margin: 0.5rem auto 0;
-    padding: 0.7rem 1.2rem;
+    min-height: 54px;
+    padding: 0.75rem 1.2rem;
     background: #f7fafc;
     border: 1px solid #f7fafc;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #11161b;
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: 0.94rem;
     cursor: pointer;
     text-decoration: none !important;
     transition: background 0.2s ease, border-color 0.2s ease;
@@ -354,10 +417,11 @@ h1 {
     width: 100%;
     max-width: none;
     margin: 0.5rem auto 0 auto;
-    padding: 0.7rem 1.2rem;
+    min-height: 54px;
+    padding: 0.75rem 1.2rem;
     background: #f7fafc;
     border: 1px solid #f7fafc;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #7f8a99;
     font-weight: 600;
     font-size: 0.88rem;
@@ -372,19 +436,48 @@ h1 {
     text-align: left;
 }
 
+.login-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0 0 1.25rem;
+    padding: 0.85rem;
+    background: #151b20;
+    border: 1px solid rgba(239, 106, 106, 0.5);
+    border-radius: 8px;
+    color: #f7fafc;
+    font-size: 0.81rem;
+    font-weight: 500;
+}
+
+.login-alert-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ef6a6a;
+    border-radius: 50%;
+    color: #ef6a6a;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex: 0 0 auto;
+}
+
 /* Checkbox styling */
 [data-testid="stCheckbox"] {
-    margin: 0.8rem 0 !important;
+    margin: 0.85rem 0 0.8rem !important;
 }
 
 [data-testid="stCheckbox"] label p {
     color: #94a3b8 !important;
-    font-size: 0.8rem !important;
+    font-size: 0.81rem !important;
+    line-height: 1.55 !important;
 }
 
 [data-testid="stCheckbox"] label a {
-    color: #00d4aa !important;
-    text-decoration: none !important;
+    color: #0faf9a !important;
+    text-decoration: underline !important;
 }
 
 [data-testid="stCheckbox"] label a:hover {
@@ -434,11 +527,11 @@ h1 {
    ───────────────────────────────────────────── */
 .login-footer {
     text-align: center;
-    color: #475569;
-    font-size: 0.76rem;
-    margin-top: 1.7rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
+    color: #7f8a99;
+    font-size: 0.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #252c33;
 }
 
 .login-disclosure {
@@ -446,13 +539,50 @@ h1 {
     font-size: 0.72rem;
     line-height: 1.5;
     text-align: center;
-    border-top: 1px solid #27313a;
-    margin-top: 1.1rem;
-    padding-top: 1.1rem;
+    border-top: 1px solid #252c33;
+    margin-top: 1rem;
+    padding-top: 1rem;
 }
 
 .login-disclosure a {
-    color: #96a5ba !important;
+    color: #94a3b8 !important;
+    text-decoration: underline !important;
+}
+
+body:has(.login-eyebrow) [data-testid="stButton"] {
+    margin-top: 0.5rem;
+}
+
+body:has(.login-eyebrow) [data-testid="stButton"] > button {
+    width: 100%;
+    min-height: 54px;
+    border: 1px solid #f7fafc;
+    border-radius: 8px;
+    background-color: #f7fafc;
+    color: #11161b;
+    font-size: 0.94rem;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+body:has(.login-eyebrow) [data-testid="stButton"] > button:hover {
+    border-color: #e5e7eb;
+    background-color: #e5e7eb;
+    color: #11161b;
+}
+
+body:has(.login-eyebrow) [data-testid="stButton"] > button::before {
+    content: "";
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.5rem;
+    vertical-align: -0.25rem;
+    background: url("https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg") center / contain no-repeat;
+}
+
+body:has(.login-eyebrow) .login-validation {
+    margin-top: 0.5rem;
 }
 
 @media (max-width: 768px) {
@@ -465,6 +595,11 @@ h1 {
 
     main .block-container {
         max-width: none !important;
+        padding: 2.5rem 1.25rem 2rem !important;
+    }
+
+    body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] {
+        min-height: auto;
         padding: 2.5rem 1.25rem 2rem !important;
     }
 

@@ -9,6 +9,7 @@ API key is loaded from `.env`.
 """
 
 import json
+import html
 import os
 import re
 from pathlib import Path
@@ -256,6 +257,7 @@ NVIDIA_API_BASE_URL = os.getenv(
 )
 SYSTEM_PROMPT = ai_settings.get("system_prompt", "")
 nemotron_client = None
+AI_INIT_ERROR = None
 
 if AI_ENABLED:
     NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY", "")
@@ -269,7 +271,7 @@ if AI_ENABLED:
             )
         except Exception as e:
             AI_READY = False
-            st.sidebar.warning(f"⚠️ Nemotron AI failed to initialize: {e}")
+            AI_INIT_ERROR = f"⚠️ Nemotron AI failed to initialize: {e}"
 else:
     AI_READY = False
 
@@ -439,7 +441,13 @@ with st.sidebar:
     st.markdown(
         """
         <div class="sidebar-brand">
-            <div class="sidebar-brand-icon">🤖</div>
+            <div class="sidebar-brand-icon">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <polygon points="12 2 2 8.5 2 15.5 12 22 22 15.5 22 8.5 12 2"></polygon>
+                    <line x1="12" x2="12" y1="22" y2="12"></line>
+                    <polyline points="22 8.5 12 12 2 8.5"></polyline>
+                </svg>
+            </div>
             <div class="sidebar-brand-text">
                 <div class="sidebar-brand-title">Cognix</div>
                 <div class="sidebar-brand-sub">AI Internship Assistant</div>
@@ -448,14 +456,11 @@ with st.sidebar:
         """,
         unsafe_allow_html=True,
     )
-    st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
-
-    # ── APP section ───────────────────────────────────────────────────
-    st.markdown("<div class='sidebar-section-label'>APP</div>", unsafe_allow_html=True)
-
     _is_auth_sidebar = "user" in st.session_state
 
     if _is_auth_sidebar:
+        st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='sidebar-section-label'>APP</div>", unsafe_allow_html=True)
         _given = st.session_state.user.get('given_name', 'User')
         _email = st.session_state.user.get('email', '')
         _is_admin_sidebar = _email in ADMIN_EMAILS
@@ -516,8 +521,9 @@ if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
     st.stop()
 
 is_authenticated = authenticate_user()
+if is_authenticated and AI_INIT_ERROR:
+    st.sidebar.warning(AI_INIT_ERROR)
 if not is_authenticated:
-
     st.markdown(
         '<div class="login-eyebrow">COGNIX WORKSPACE</div>'
         '<h1 class="login-main-heading">Sign in to Cognix</h1>',
@@ -530,15 +536,18 @@ if not is_authenticated:
         unsafe_allow_html=True,
     )
 
-    consent_checked = st.checkbox(
-        label="I agree to the [Privacy Policy](./Legal#privacy-policy) and [Terms of Service](./Legal#terms).",
-        key="legal_consent",
-    )
-
     auth_error = st.session_state.pop("auth_error", None)
     if auth_error:
-        st.error(auth_error, icon="⚠️")
+        st.markdown(
+            "<div class='login-alert' role='alert'>"
+            "<span class='login-alert-icon'>!</span>"
+            f"<span>{html.escape(auth_error)}</span>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
+    consent_checked = st.session_state.get("legal_consent", False)
+    auth_attempted = st.session_state.get("auth_attempted", False)
     if consent_checked:
         st.markdown(
             f'<div style="text-align:center;">'
@@ -549,28 +558,26 @@ if not is_authenticated:
             unsafe_allow_html=True,
         )
     else:
-        st.markdown(
-            '<div class="google-btn-disabled" role="button" aria-disabled="true">'
-            '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" '
-            'width="18" height="18" style="margin-right:0.4rem; opacity:0.3;"/>'
-            'Continue with Google</div>'
-            '<p class="login-validation" role="status">'
-            'Please accept the Privacy Policy and Terms of Service to continue.</p>',
-            unsafe_allow_html=True,
-        )
+        if st.button("Continue with Google", key="auth_submit", use_container_width=True):
+            st.session_state.auth_attempted = True
+            st.rerun()
+        if auth_attempted:
+            st.markdown(
+                '<p class="login-validation" role="alert">'
+                'Please accept the Privacy Policy and Terms of Service to continue.</p>',
+                unsafe_allow_html=True,
+            )
+
+    consent_checked = st.checkbox(
+        label="I agree to the [Privacy Policy](./Legal#privacy-policy) and [Terms of Service](./Legal#terms).",
+        key="legal_consent",
+    )
+
     st.markdown(
-        "<p class='login-disclosure'>"
+        "<div class='login-disclosure'>"
         "By continuing, you acknowledge Cognix's "
         "<a href='./Legal#privacy-policy' target='_blank'>Privacy Policy</a> and "
         "<a href='./Legal#terms' target='_blank'>Terms of Service</a>."
-        "</p>",
-        unsafe_allow_html=True,
-    )
-
-    # ── Footer ────────────────────────────────────────────────────────
-    st.markdown(
-        "<div class='login-footer'>"
-        "© 2026 Cognix AI Intelligence. All rights reserved. &nbsp;•&nbsp; v4.2.0-stable"
         "</div>",
         unsafe_allow_html=True,
     )
