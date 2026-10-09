@@ -498,11 +498,39 @@ h1 {
     font-size: 0.81rem;
     line-height: 1.55;
     padding-top: 0.85rem;
+    white-space: nowrap;
 }
 
 .login-consent-links a {
     color: #00d4aa !important;
     text-decoration: underline !important;
+}
+
+.login-consent-separator {
+    display: inline-block;
+    margin: 0 0.3rem;
+}
+
+body:has(.login-eyebrow) [data-testid="stHorizontalBlock"]:has([data-testid="stCheckbox"]) {
+    flex-wrap: nowrap !important;
+    align-items: flex-start !important;
+    column-gap: 0 !important;
+}
+
+body:has(.login-eyebrow) [data-testid="stHorizontalBlock"]:has([data-testid="stCheckbox"]) > [data-testid="stColumn"] {
+    min-width: 0 !important;
+}
+
+body:has(.login-eyebrow) [data-testid="stHorizontalBlock"]:has([data-testid="stCheckbox"]) > [data-testid="stColumn"]:first-child {
+    flex: 0 0 26px !important;
+    width: 26px !important;
+    min-width: 0 !important;
+}
+
+body:has(.login-eyebrow) [data-testid="stHorizontalBlock"]:has([data-testid="stCheckbox"]) > [data-testid="stColumn"]:last-child {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
 }
 
 /* ─────────────────────────────────────────────

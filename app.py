@@ -593,17 +593,19 @@ if not is_authenticated:
                 unsafe_allow_html=True,
             )
 
-    consent_col, links_col = st.columns([1.1, 3.9], gap="small")
+    consent_col, links_col = st.columns([0.35, 4.65], gap="small")
     with consent_col:
         consent_checked = st.checkbox(
-            label="I agree to the",
+            label="",
             key="legal_consent",
         )
     with links_col:
         st.markdown(
             "<div class='login-consent-links'>"
+            "I agree to the "
             "<a href='https://cognix-ai-chatbot.onrender.com/Legal#privacy-policy' "
-            "target='_self'>Privacy Policy</a> and "
+            "target='_self'>Privacy Policy</a>"
+            "<span class='login-consent-separator'> and </span>"
             "<a href='https://cognix-ai-chatbot.onrender.com/Legal#terms' "
             "target='_self'>Terms of Service</a>."
             "</div>",
