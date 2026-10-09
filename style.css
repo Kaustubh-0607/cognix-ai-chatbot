@@ -89,13 +89,19 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 
 .sidebar-brand-logo {
     width: 58px;
+    height: 58px;
     flex: 0 0 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
 }
 
 .sidebar-brand-logo img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
     object-fit: contain;
 }
 
