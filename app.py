@@ -8,6 +8,7 @@ All intent data and AI settings are loaded from `intents.json`.
 API key is loaded from `.env`.
 """
 
+import base64
 import json
 import html
 import os
@@ -228,6 +229,15 @@ def get_fallback_queries(limit=20):
 load_dotenv(Path(__file__).parent / ".env")
 
 CONFIG_PATH = Path(__file__).parent / "intents.json"
+LOGO_PATH = Path(__file__).parent / "assets" / "Cognix logo (2).jpg"
+
+if not LOGO_PATH.is_file():
+    raise FileNotFoundError(f"Required Cognix logo asset not found: {LOGO_PATH}")
+
+LOGO_DATA_URI = (
+    "data:image/jpeg;base64,"
+    + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+)
 
 
 def load_config(path: str) -> dict:
@@ -439,14 +449,10 @@ except FileNotFoundError:
 with st.sidebar:
     # ── Brand block ───────────────────────────────────────────────────
     st.markdown(
-        """
+        f"""
         <div class="sidebar-brand">
             <div class="sidebar-brand-icon">
-                <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <polygon points="12 2 2 8.5 2 15.5 12 22 22 15.5 22 8.5 12 2"></polygon>
-                    <line x1="12" x2="12" y1="22" y2="12"></line>
-                    <polyline points="22 8.5 12 12 2 8.5"></polyline>
-                </svg>
+                <img alt="Cognix logo" src="{LOGO_DATA_URI}">
             </div>
             <div class="sidebar-brand-text">
                 <div class="sidebar-brand-title">Cognix</div>
@@ -524,6 +530,18 @@ is_authenticated = authenticate_user()
 if is_authenticated and AI_INIT_ERROR:
     st.sidebar.warning(AI_INIT_ERROR)
 if not is_authenticated:
+    st.markdown(
+        f"""
+        <div class="login-mobile-brand">
+            <img alt="Cognix logo" src="{LOGO_DATA_URI}">
+            <div>
+                <strong>Cognix</strong>
+                <span>AI Internship Assistant</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.markdown(
         '<div class="login-eyebrow">COGNIX WORKSPACE</div>'
         '<h1 class="login-main-heading">Sign in to Cognix</h1>',

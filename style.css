@@ -98,7 +98,16 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
     align-items: center;
     justify-content: center;
     color: #0faf9a;
+    overflow: hidden;
     box-shadow: none;
+}
+
+.sidebar-brand-icon img {
+    display: block;
+    width: 40px;
+    height: auto;
+    max-width: none;
+    flex: 0 0 auto;
 }
 
 .sidebar-brand-icon svg {
@@ -464,6 +473,10 @@ h1 {
     flex: 0 0 auto;
 }
 
+.login-mobile-brand {
+    display: none;
+}
+
 /* Checkbox styling */
 [data-testid="stCheckbox"] {
     margin: 0.85rem 0 0.8rem !important;
@@ -586,6 +599,10 @@ body:has(.login-eyebrow) .login-validation {
 }
 
 @media (max-width: 768px) {
+    body:has(.login-eyebrow) [data-testid="stSidebar"] {
+        display: none !important;
+    }
+
     [data-testid="stSidebar"] {
         min-width: 100% !important;
         max-width: 100% !important;
@@ -601,6 +618,36 @@ body:has(.login-eyebrow) .login-validation {
     body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] {
         min-height: auto;
         padding: 2.5rem 1.25rem 2rem !important;
+    }
+
+    body:has(.login-eyebrow) .login-mobile-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+    }
+
+    body:has(.login-eyebrow) .login-mobile-brand img {
+        width: 32px;
+        height: 32px;
+        object-fit: cover;
+        object-position: top;
+        border-radius: 6px;
+    }
+
+    body:has(.login-eyebrow) .login-mobile-brand strong,
+    body:has(.login-eyebrow) .login-mobile-brand span {
+        display: block;
+    }
+
+    body:has(.login-eyebrow) .login-mobile-brand strong {
+        color: #f7fafc;
+        font-size: 1.1rem;
+    }
+
+    body:has(.login-eyebrow) .login-mobile-brand span {
+        color: #7f8d9d;
+        font-size: 0.68rem;
     }
 
     .login-main-heading {
