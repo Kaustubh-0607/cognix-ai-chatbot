@@ -82,42 +82,20 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 /* ── Sidebar Brand ── */
 .sidebar-brand {
     display: flex;
-    align-items: center;
-    gap: 0.7rem;
+    align-items: flex-start;
     padding: 2.5rem 2.1rem 0.8rem 2.1rem;
 }
 
-.sidebar-brand-icon {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    background: #151d24;
-    border: 1px solid #30404a;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #0faf9a;
-    overflow: hidden;
-    box-shadow: none;
+.sidebar-brand-logo {
+    width: 180px;
+    flex: 0 0 180px;
 }
 
-.sidebar-brand-icon img {
+.sidebar-brand-logo img {
     display: block;
-    width: 40px;
+    width: 100%;
     height: auto;
-    max-width: none;
-    flex: 0 0 auto;
-}
-
-.sidebar-brand-icon svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2.2;
+    object-fit: contain;
 }
 
 .sidebar-brand-text {
@@ -629,9 +607,8 @@ body:has(.login-eyebrow) .login-validation {
 
     body:has(.login-eyebrow) .login-mobile-brand img {
         width: 32px;
-        height: 32px;
-        object-fit: cover;
-        object-position: top;
+        height: auto;
+        object-fit: contain;
         border-radius: 6px;
     }
 

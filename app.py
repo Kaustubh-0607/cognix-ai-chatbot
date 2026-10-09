@@ -451,12 +451,8 @@ with st.sidebar:
     st.markdown(
         f"""
         <div class="sidebar-brand">
-            <div class="sidebar-brand-icon">
+            <div class="sidebar-brand-logo">
                 <img alt="Cognix logo" src="{LOGO_DATA_URI}">
-            </div>
-            <div class="sidebar-brand-text">
-                <div class="sidebar-brand-title">Cognix</div>
-                <div class="sidebar-brand-sub">AI Internship Assistant</div>
             </div>
         </div>
         """,
