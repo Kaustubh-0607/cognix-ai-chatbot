@@ -454,6 +454,10 @@ with st.sidebar:
             <div class="sidebar-brand-logo">
                 <img alt="Cognix logo" src="{LOGO_DATA_URI}">
             </div>
+            <div class="sidebar-brand-text">
+                <div class="sidebar-brand-title">Cognix</div>
+                <div class="sidebar-brand-sub">AI Internship Assistant</div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,

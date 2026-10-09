@@ -82,13 +82,14 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 /* ── Sidebar Brand ── */
 .sidebar-brand {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    gap: 0.7rem;
     padding: 2.5rem 2.1rem 0.8rem 2.1rem;
 }
 
 .sidebar-brand-logo {
-    width: 180px;
-    flex: 0 0 180px;
+    width: 58px;
+    flex: 0 0 58px;
 }
 
 .sidebar-brand-logo img {
