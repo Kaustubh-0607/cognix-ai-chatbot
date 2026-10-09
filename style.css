@@ -88,15 +88,25 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 }
 
 .sidebar-brand-logo {
-    width: 58px;
-    flex: 0 0 58px;
+    width: 64px;
+    height: 64px;
+    flex: 0 0 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #111820;
 }
 
 .sidebar-brand-logo img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    padding: 4px;
     object-fit: contain;
+    border-radius: 50%;
 }
 
 .sidebar-brand-text {
@@ -466,6 +476,7 @@ h1 {
     color: #94a3b8 !important;
     font-size: 0.81rem !important;
     line-height: 1.55 !important;
+    white-space: nowrap;
 }
 
 [data-testid="stCheckbox"] label a {
@@ -480,6 +491,18 @@ h1 {
 /* Consent link color override */
 .stCheckbox a {
     color: #00d4aa !important;
+}
+
+.login-consent-links {
+    color: #94a3b8;
+    font-size: 0.81rem;
+    line-height: 1.55;
+    padding-top: 0.85rem;
+}
+
+.login-consent-links a {
+    color: #00d4aa !important;
+    text-decoration: underline !important;
 }
 
 /* ─────────────────────────────────────────────

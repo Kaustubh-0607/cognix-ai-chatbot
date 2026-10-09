@@ -230,13 +230,20 @@ load_dotenv(Path(__file__).parent / ".env")
 
 CONFIG_PATH = Path(__file__).parent / "intents.json"
 LOGO_PATH = Path(__file__).parent / "assets" / "Cognix logo (2).jpg"
+EMBLEM_PATH = Path(__file__).parent / "assets" / "Cognix emblem.png"
 
 if not LOGO_PATH.is_file():
     raise FileNotFoundError(f"Required Cognix logo asset not found: {LOGO_PATH}")
+if not EMBLEM_PATH.is_file():
+    raise FileNotFoundError(f"Required Cognix emblem asset not found: {EMBLEM_PATH}")
 
 LOGO_DATA_URI = (
     "data:image/jpeg;base64,"
     + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+)
+EMBLEM_DATA_URI = (
+    "data:image/png;base64,"
+    + base64.b64encode(EMBLEM_PATH.read_bytes()).decode("ascii")
 )
 
 
@@ -452,7 +459,7 @@ with st.sidebar:
         f"""
         <div class="sidebar-brand">
             <div class="sidebar-brand-logo">
-                <img alt="Cognix logo" src="{LOGO_DATA_URI}">
+                <img alt="Cognix logo" src="{EMBLEM_DATA_URI}">
             </div>
             <div class="sidebar-brand-text">
                 <div class="sidebar-brand-title">Cognix</div>
@@ -586,10 +593,22 @@ if not is_authenticated:
                 unsafe_allow_html=True,
             )
 
-    consent_checked = st.checkbox(
-        label="I agree to the [Privacy Policy](./Legal#privacy-policy) and [Terms of Service](./Legal#terms).",
-        key="legal_consent",
-    )
+    consent_col, links_col = st.columns([1.1, 3.9], gap="small")
+    with consent_col:
+        consent_checked = st.checkbox(
+            label="I agree to the",
+            key="legal_consent",
+        )
+    with links_col:
+        st.markdown(
+            "<div class='login-consent-links'>"
+            "<a href='https://cognix-ai-chatbot.onrender.com/Legal#privacy-policy' "
+            "target='_self'>Privacy Policy</a> and "
+            "<a href='https://cognix-ai-chatbot.onrender.com/Legal#terms' "
+            "target='_self'>Terms of Service</a>."
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
     st.markdown(
         "<div class='login-disclosure'>"
