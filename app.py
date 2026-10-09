@@ -481,7 +481,7 @@ with st.sidebar:
         # Chat nav item
         _chat_active = st.session_state.get("current_page", "chat") == "chat"
         if st.button(
-            "💬 Chat",
+            "Chat",
             key="nav_chat",
             type="primary" if _chat_active else "secondary",
             use_container_width=True,
@@ -493,7 +493,7 @@ with st.sidebar:
         if _is_admin_sidebar:
             _admin_active = st.session_state.get("current_page", "chat") == "admin"
             if st.button(
-                "🛠️ Admin Dashboard",
+                "Admin Dashboard",
                 key="nav_admin",
                 type="primary" if _admin_active else "secondary",
                 use_container_width=True,
@@ -504,19 +504,19 @@ with st.sidebar:
         st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
         st.markdown(
             f"<div class='sidebar-user-info'>"
-            f"<span class='sidebar-user-name'>👋 {_given}</span>"
+            f"<span class='sidebar-user-name'>{_given}</span>"
             f"<span class='sidebar-user-email'>{_email}</span>"
             f"</div>",
             unsafe_allow_html=True,
         )
-        if st.button("🚪 Logout", key="nav_logout", use_container_width=True):
+        if st.button("Log out", key="nav_logout", use_container_width=True):
             del st.session_state["user"]
             st.rerun()
     if _is_auth_sidebar:
         st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
         st.markdown("<div class='sidebar-section-label'>LEGAL</div>", unsafe_allow_html=True)
         st.markdown(
-            '<a href="./Legal" target="_blank" class="sidebar-nav-item" style="text-decoration:none;">⚖️ Legal</a>',
+            '<a href="./Legal" target="_blank" class="sidebar-nav-item" style="text-decoration:none;">Legal</a>',
             unsafe_allow_html=True,
         )
 
@@ -637,7 +637,7 @@ with st.sidebar:
     st.markdown("<div class='sidebar-hr'></div>", unsafe_allow_html=True)
     st.markdown("<div class='sidebar-section-label'>CHATS</div>", unsafe_allow_html=True)
 
-    if st.button("➕ New Chat", type="primary", use_container_width=True, key="new_chat_btn"):
+    if st.button("New Chat", type="primary", use_container_width=True, key="new_chat_btn"):
         st.session_state.current_page = "chat"
         st.session_state.session_id = str(uuid.uuid4())
         st.session_state.chat_title = "New Chat"
@@ -654,7 +654,7 @@ with st.sidebar:
         for sess in recent_sessions:
             col1, col2 = st.columns([0.85, 0.15])
             with col1:
-                if st.button(f"💬 {sess['title']}", key=f"sess_{sess['session_id']}", use_container_width=True):
+                if st.button(sess['title'], key=f"sess_{sess['session_id']}", use_container_width=True):
                     st.session_state.session_id = sess['session_id']
                     st.session_state.chat_title = sess['title']
                     msgs = load_session(current_user_id, sess['session_id'])
@@ -662,7 +662,7 @@ with st.sidebar:
                         st.session_state.messages = msgs
                     st.rerun()
             with col2:
-                if st.button("🗑️", key=f"del_{sess['session_id']}", help="Delete chat", use_container_width=True):
+                if st.button("Delete", key=f"del_{sess['session_id']}", help="Delete chat", use_container_width=True):
                     delete_session(current_user_id, sess['session_id'])
                     if st.session_state.session_id == sess['session_id']:
                         st.session_state.session_id = str(uuid.uuid4())
@@ -671,7 +671,7 @@ with st.sidebar:
                         save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
                     st.rerun()
 
-        if st.button("🚨 Clear All History", key="clear_all", help="Delete all chat history"):
+        if st.button("Clear All History", key="clear_all", help="Delete all chat history"):
             clear_all_sessions(current_user_id)
             st.session_state.session_id = str(uuid.uuid4())
             st.session_state.chat_title = "New Chat"
@@ -683,15 +683,15 @@ with st.sidebar:
     st.markdown("<div class='sidebar-section-label'>SETTINGS</div>", unsafe_allow_html=True)
     if AI_READY:
         use_ai_toggle = st.toggle("Enable AI Mode", value=False)
-        st.caption("**Note:** Use AI mode only when necessary.  \n🌱 Save digital environment.")
+        st.caption("**Note:** Use AI mode only when necessary. Save digital environment.")
         if use_ai_toggle:
-            st.success(f"🧠 AI Mode: **ON** ({NEMOTRON_MODEL})")
+            st.success(f"AI Mode: **ON** ({NEMOTRON_MODEL})")
             st.caption("Complex questions are answered by NVIDIA Nemotron AI.")
         else:
-            st.info("⚡ AI Mode: **OFF**")
+            st.info("AI Mode: **OFF**")
             st.caption("Operating in fast rule-based mode only.")
     else:
-        st.warning("⚠️ AI Mode unavailable (NVIDIA_API_KEY is not configured).")
+        st.warning("AI Mode unavailable (NVIDIA_API_KEY is not configured).")
         st.caption("Operating in rule-based mode.")
         use_ai_toggle = False
         if AI_ENABLED and not AI_READY:
@@ -699,7 +699,7 @@ with st.sidebar:
         st.caption("The bot uses keyword matching for known topics.")
     st.markdown(
         "<div style='padding:0.4rem 0; font-size:0.8rem; color:#94a3b8;'>"
-        "💡 Type <code>main menu</code> anytime to go back to the start."
+        "Type <code>main menu</code> anytime to go back to the start."
         "</div>",
         unsafe_allow_html=True,
     )
@@ -1423,31 +1423,42 @@ if user_input:
     save_session(current_user_id, st.session_state.session_id, st.session_state.chat_title, st.session_state.messages)
 
 # ──────────────────────────────────────────────
-# Quick Options / Default Buttons (Rendered last to stay at bottom)
+# Quick action cards (rendered last to stay at bottom)
 # ──────────────────────────────────────────────
-def handle_pill():
-    if st.session_state.quick_option:
-        st.session_state.pill_input = st.session_state.quick_option
-        st.session_state.quick_option = None
-
-quick_options = [
-    "💼 Internship Opportunities",
-    "📂 Project Guidelines",
-    "🎓 Certificates",
-    "🪄 Application Process",
-    "🛟 Support"
+quick_actions = [
+    {
+        "title": "Internship Opportunities",
+        "description": "Explore available internship openings and role fit.",
+        "prompt": "internship opportunities",
+    },
+    {
+        "title": "Project Guidelines",
+        "description": "Review the expectations, standards, and deliverables.",
+        "prompt": "project guidelines",
+    },
+    {
+        "title": "Certificates",
+        "description": "Learn which certifications strengthen your application.",
+        "prompt": "certificates",
+    },
+    {
+        "title": "Application Process",
+        "description": "Understand the next steps from application to onboarding.",
+        "prompt": "application process",
+    },
 ]
 
-# Hidden marker to anchor the CSS tightly to the exact next element (the pills)
-st.markdown('<div class="pill-marker"></div>', unsafe_allow_html=True)
-
-st.pills(
-    "Quick Options",
-    quick_options,
-    label_visibility="collapsed",
-    key="quick_option",
-    on_change=handle_pill
-)
+st.markdown('<div class="quick-action-title">Quick actions</div>', unsafe_allow_html=True)
+quick_cols = st.columns(2)
+for index, action in enumerate(quick_actions):
+    with quick_cols[index % 2]:
+        if st.button(
+            f"{action['title']}\n{action['description']}",
+            key=f"quick_action_{index}",
+            use_container_width=True,
+        ):
+            st.session_state.pill_input = action["prompt"]
+            st.rerun()
 
 # ──────────────────────────────────────────────
 # Application Footer

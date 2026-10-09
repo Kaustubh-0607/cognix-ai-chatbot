@@ -169,8 +169,8 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 }
 
 .sidebar-nav-active {
-    background: rgba(124, 58, 237, 0.15) !important;
-    color: #a855f7 !important;
+    background: rgba(0, 191, 166, 0.14) !important;
+    color: #00bfa6 !important;
     font-weight: 500;
 }
 
@@ -292,7 +292,7 @@ body:has(.login-eyebrow) .sidebar-footer {
 }
 
 [data-testid="stSidebar"] button[kind="primary"] {
-    background: linear-gradient(135deg, #7c3aed, #a855f7) !important;
+    background: linear-gradient(135deg, #00bfa6, #0aa3a5) !important;
     border: none !important;
     border-radius: 8px !important;
     color: white !important;
@@ -812,11 +812,11 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
 
 /* User bubble */
 [data-testid="stChatMessage"]:nth-child(even) {
-    background: linear-gradient(135deg, #6c3ce0 0%, #a855f7 100%) !important;
+    background: linear-gradient(135deg, #00bfa6 0%, #0da8ae 100%) !important;
     border-radius: 20px 20px 0 20px !important;
     padding: 1rem !important;
     margin: 0 auto 1rem auto !important;
-    box-shadow: 0 4px 15px rgba(108, 60, 224, 0.4) !important;
+    box-shadow: 0 4px 15px rgba(0, 191, 166, 0.32) !important;
     border: none !important;
     color: white !important;
 }
@@ -848,43 +848,55 @@ div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stEle
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
-/* ── Quick Option Pills ── */
-div[data-testid="stElementContainer"]:has(.pill-marker) {
-    display: none !important;
-    height: 0 !important;
+/* ── Quick action cards ── */
+.quick-action-title {
+    margin: 1.5rem 0 0.8rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7f8a99;
+}
+
+div[data-testid="stHorizontalBlock"] > div:has(button) {
+    display: flex !important;
+}
+
+div[data-testid="stHorizontalBlock"] button {
+    min-height: 112px !important;
+    text-align: left !important;
+    white-space: normal !important;
+    padding: 1rem 1rem !important;
+    border: 1px solid rgba(148, 163, 184, 0.22) !important;
+    background: rgba(21, 27, 32, 0.90) !important;
+    color: #f7fafc !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease !important;
+}
+
+div[data-testid="stHorizontalBlock"] button:hover {
+    background: rgba(27, 34, 41, 0.98) !important;
+    border-color: rgba(0, 191, 166, 0.8) !important;
+    transform: translateY(-1px) !important;
+}
+
+div[data-testid="stHorizontalBlock"] button:focus-visible {
+    outline: 2px solid #00bfa6 !important;
+    outline-offset: 2px !important;
+}
+
+div[data-testid="stHorizontalBlock"] button p {
     margin: 0 !important;
-    padding: 0 !important;
+    line-height: 1.4 !important;
+    font-size: 0.95rem !important;
+    white-space: normal !important;
+    display: block !important;
 }
 
-div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
-    position: sticky !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: 7.80rem !important;
-    z-index: 1000 !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    width: 100% !important;
-    padding: 0.25rem 0.5rem !important;
-    background: transparent !important;
-    pointer-events: none !important;
-}
-
-div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] > div {
-    pointer-events: auto !important;
-    justify-content: center !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 0.5rem !important;
-    width: 100% !important;
-}
-
-div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] button {
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
-    backdrop-filter: blur(10px) !important;
-    background: rgba(26, 31, 46, 0.9) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+div[data-testid="stHorizontalBlock"] button > span {
+    display: block !important;
+    white-space: normal !important;
 }
 
 /* ── Bottom padding ── */
