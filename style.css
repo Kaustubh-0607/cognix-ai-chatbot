@@ -83,26 +83,33 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 0.7rem;
+    gap: 16px;
     padding: 2.5rem 2.1rem 0.8rem 2.1rem;
 }
 
 .sidebar-brand-logo {
-    width: 58px;
-    height: 58px;
-    flex: 0 0 58px;
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     border-radius: 50%;
+    border: 1px solid rgba(0, 220, 190, 0.65);
+    background: #111820;
+    box-shadow:
+        0 0 10px rgba(0, 220, 190, 0.12),
+        0 0 14px rgba(150, 65, 220, 0.10);
 }
 
 .sidebar-brand-logo img {
     display: block;
     width: 100%;
     height: 100%;
+    padding: 5px;
     object-fit: contain;
+    border-radius: 50%;
 }
 
 .sidebar-brand-text {
@@ -112,18 +119,19 @@ body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] > div {
 }
 
 .sidebar-brand-title {
-    font-size: 1.05rem !important;
+    font-size: 22px !important;
     font-weight: 700 !important;
     color: #ffffff !important;
-    line-height: 1.2 !important;
+    line-height: 1.3 !important;
     letter-spacing: -0.01em;
 }
 
 .sidebar-brand-sub {
-    font-size: 0.67rem !important;
+    font-size: 14px !important;
     color: #7f8d9d !important;
-    line-height: 1.3 !important;
+    line-height: 1.4 !important;
     font-weight: 400 !important;
+    margin-top: 2px !important;
 }
 
 /* ── Sidebar Divider ── */
