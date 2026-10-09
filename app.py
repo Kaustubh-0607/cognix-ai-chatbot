@@ -615,8 +615,10 @@ if not is_authenticated:
     st.markdown(
         "<div class='login-disclosure'>"
         "By continuing, you acknowledge Cognix's "
-        "<a href='./Legal#privacy-policy' target='_blank'>Privacy Policy</a> and "
-        "<a href='./Legal#terms' target='_blank'>Terms of Service</a>."
+        "<a href='https://cognix-ai-chatbot.onrender.com/Legal#privacy-policy' "
+        "target='_self'>Privacy Policy</a> and "
+        "<a href='https://cognix-ai-chatbot.onrender.com/Legal#terms' "
+        "target='_self'>Terms of Service</a>."
         "</div>",
         unsafe_allow_html=True,
     )
