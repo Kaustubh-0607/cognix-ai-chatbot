@@ -530,11 +530,15 @@ if not is_authenticated:
         unsafe_allow_html=True,
     )
 
+    consent_checked = st.checkbox(
+        label="I agree to the [Privacy Policy](./Legal#privacy-policy) and [Terms of Service](./Legal#terms).",
+        key="legal_consent",
+    )
+
     auth_error = st.session_state.pop("auth_error", None)
     if auth_error:
         st.error(auth_error, icon="⚠️")
 
-    consent_checked = st.session_state.get("legal_consent", False)
     if consent_checked:
         st.markdown(
             f'<div style="text-align:center;">'
@@ -549,21 +553,25 @@ if not is_authenticated:
             '<div class="google-btn-disabled" role="button" aria-disabled="true">'
             '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" '
             'width="18" height="18" style="margin-right:0.4rem; opacity:0.3;"/>'
-            'Continue with Google</div>',
+            'Continue with Google</div>'
+            '<p class="login-validation" role="status">'
+            'Please accept the Privacy Policy and Terms of Service to continue.</p>',
             unsafe_allow_html=True,
         )
-
-    st.checkbox(
-        label="I agree to the [Privacy Policy](./Legal#privacy-policy) and [Terms of Service](./Legal#terms).",
-        key="legal_consent",
-    )
-
     st.markdown(
         "<p class='login-disclosure'>"
         "By continuing, you acknowledge Cognix's "
         "<a href='./Legal#privacy-policy' target='_blank'>Privacy Policy</a> and "
         "<a href='./Legal#terms' target='_blank'>Terms of Service</a>."
         "</p>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Footer ────────────────────────────────────────────────────────
+    st.markdown(
+        "<div class='login-footer'>"
+        "© 2026 Cognix AI Intelligence. All rights reserved. &nbsp;•&nbsp; v4.2.0-stable"
+        "</div>",
         unsafe_allow_html=True,
     )
 
