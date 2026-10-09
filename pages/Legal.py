@@ -168,7 +168,7 @@ LEGAL_HTML = """
 
     <!-- TERMS & CONDITIONS -->
     <div class="section">
-        <h2>Terms &amp; Conditions</h2>
+        <h2 id="terms">Terms &amp; Conditions</h2>
 
         <p><strong>Last Updated:</strong> April 2026</p>
 
@@ -199,7 +199,7 @@ LEGAL_HTML = """
 
     <!-- PRIVACY POLICY -->
     <div class="section">
-        <h2>Privacy Policy</h2>
+        <h2 id="privacy-policy">Privacy Policy</h2>
 
         <p>Cognix collects limited user information to provide and improve its services. This includes your
         email address (via Google login) and chat interactions with the AI system. This data is used to

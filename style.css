@@ -52,6 +52,12 @@ main .block-container {
     padding-right: 0 !important;
 }
 
+[data-testid="stSidebar"] > div:first-child > div:first-child {
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
 /* Hide the default Streamlit page nav auto-generated links */
 [data-testid="stSidebarNav"] { display: none !important; }
 
@@ -424,15 +430,6 @@ h1 {
 /* ─────────────────────────────────────────────
    LOGIN PAGE — FOOTER
    ───────────────────────────────────────────── */
-.login-footer {
-    text-align: center;
-    color: #475569;
-    font-size: 0.76rem;
-    margin-top: 1.7rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
-}
-
 .login-disclosure {
     color: #7f8a99;
     font-size: 0.72rem;

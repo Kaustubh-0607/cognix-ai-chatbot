@@ -530,48 +530,40 @@ if not is_authenticated:
         unsafe_allow_html=True,
     )
 
-    consent_checked = st.checkbox(
-        label="I agree to the [Privacy Policy](./Legal) and [Terms of Service](./Legal).",
-        key="legal_consent",
-        value=st.session_state.get("legal_consent", False),
-    )
-
     auth_error = st.session_state.pop("auth_error", None)
     if auth_error:
-        st.error(auth_error)
+        st.error(auth_error, icon="⚠️")
 
+    consent_checked = st.session_state.get("legal_consent", False)
     if consent_checked:
         st.markdown(
             f'<div style="text-align:center;">'
             f'<a href="{get_login_url()}" target="_self" class="google-btn">'
             '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" '
             'width="18" height="18" style="margin-right:0.4rem;"/>'
-            'Sign in with Google</a></div>',
+            'Continue with Google</a></div>',
             unsafe_allow_html=True,
         )
     else:
         st.markdown(
-            '<div style="text-align:center;">'
-            '<div class="google-btn-disabled">'
+            '<div class="google-btn-disabled" role="button" aria-disabled="true">'
             '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" '
             'width="18" height="18" style="margin-right:0.4rem; opacity:0.3;"/>'
-            'Sign in with Google</div></div>',
+            'Continue with Google</div>',
             unsafe_allow_html=True,
         )
+
+    st.checkbox(
+        label="I agree to the [Privacy Policy](./Legal#privacy-policy) and [Terms of Service](./Legal#terms).",
+        key="legal_consent",
+    )
+
     st.markdown(
         "<p class='login-disclosure'>"
         "By continuing, you acknowledge Cognix's "
-        "<a href='./Legal' target='_blank'>Privacy Policy</a> and "
-        "<a href='./Legal' target='_blank'>Terms of Service</a>."
+        "<a href='./Legal#privacy-policy' target='_blank'>Privacy Policy</a> and "
+        "<a href='./Legal#terms' target='_blank'>Terms of Service</a>."
         "</p>",
-        unsafe_allow_html=True,
-    )
-
-    # ── Footer ────────────────────────────────────────────────────────
-    st.markdown(
-        "<div class='login-footer'>"
-        "© 2026 Cognix AI Intelligence. All rights reserved. &nbsp;•&nbsp; v4.2.0-stable"
-        "</div>",
         unsafe_allow_html=True,
     )
 
