@@ -55,19 +55,6 @@ main .block-container {
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-}
-
-main .block-container > div:first-child {
-    flex: 1 1 auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-main .block-container > div:first-child > div {
-    min-height: 0;
 }
 
 body:has(.login-eyebrow) [data-testid="stMainBlockContainer"] {
@@ -822,17 +809,6 @@ div[class*="stAppBottomBlock"] {
 [data-testid="stBottom"],
 div[data-testid="stElementContainer"]:has(.pill-marker) + div[data-testid="stElementContainer"] {
     z-index: 1000 !important;
-}
-
-/* Reserve space for the composer without letting the layout exceed the viewport. */
-[data-testid="stMain"] [data-testid="stVerticalBlock"] {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-}
-
-[data-testid="stMain"] [data-testid="stVerticalBlock"] > div:last-child {
-    padding-bottom: 0.5rem;
 }
 
 [data-testid="stChatInput"] {
